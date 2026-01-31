@@ -1,0 +1,2555 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>ハル熟 1000</title>
+
+  <style>
+    :root{
+      --bd:#ddd; --bd-dark:#2a2f3a;
+      --bg:#fff; --fg:#111;
+      --muted:#666;
+      --card:#fff; --card-dark:#171a21;
+
+      --pill-pad-y:6px; --pill-pad-x:8px; --pill-radius:999px;
+      --btn-radius:12px;
+
+      /* 復習系 */
+      --review-bg:#f3f6fb; --review-bd:#cfd8e3; --review-fg:#334155;
+      --review-bg-hover:#e9eef7; --review-accent:#64748b;
+
+      /* wheel */
+      --wheel-item-h:44px;
+      --wheel-fade:rgba(255,255,255,0.9);
+      --wheel-fade-dark:rgba(15,17,21,0.85);
+    }
+
+    body{
+      font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+      margin:0; padding:5px;
+      background:var(--bg); color:var(--fg);
+      transition:background .2s ease,color .2s ease;
+    }
+
+    .card{
+      max-width:820px;
+      margin:0 auto;
+      padding:18px;
+      border:1px solid var(--bd);
+      border-radius:14px;
+      background:var(--card);
+      position:relative;
+      transition:background .2s ease,border-color .2s ease;
+    }
+
+    /* PC/iPad：縦長見え */
+    @media (min-width:768px){
+      .card{ max-width:300px; }
+    }
+
+    .page-title{
+      font-size:16px;
+      font-weight:700;
+      margin:0 0 12px;
+      text-align:center;
+      letter-spacing:.03em;
+      user-select:none;
+    }
+
+    /* 行レイアウト */
+    .row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .topbar-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    /* 共通UI（badge/pill/small） */
+    .badge,.pill,button.small{
+      font-size:16px;
+      line-height:1;
+      padding:var(--pill-pad-y) var(--pill-pad-x);
+      border-radius:var(--pill-radius);
+      border:1px solid var(--bd);
+      background:transparent;
+      color:inherit;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+      white-space:nowrap;
+      transition:background .2s ease,border-color .2s ease,color .2s ease;
+    }
+    .pill{ cursor:pointer; }
+    button.small{ cursor:pointer; }
+    button.small:active{ transform:translateY(1px); }
+
+    button{
+      font-size:16px;
+      padding:10px 14px;
+      border-radius:var(--btn-radius);
+      border:1px solid var(--bd);
+      background:#fff;
+      color:#111;
+      cursor:pointer;
+      transition:background .2s ease,border-color .2s ease,color .2s ease;
+    }
+    button:active{ transform:translateY(1px); }
+
+    .primary{ font-weight:500; }
+    .danger{ border-color:#f2c; }
+    .toggle{ border-color:#88c; }
+    .pill.togglePill{ border-color:#88c; }
+
+    /* iPhoneダブルタップ拡大など抑制 */
+    button, label, .pill{
+      -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
+    }
+
+    /* 復習UI */
+    .reviewUI{
+      background:var(--review-bg);
+      border-color:var(--review-bd);
+      color:var(--review-fg);
+      border-radius:14px;
+    }
+    @media (hover:hover) and (pointer:fine){
+      .reviewUI:hover{ background:var(--review-bg-hover); }
+    }
+    @media (hover:none){
+      .reviewUI:hover{ background:var(--review-bg); }
+    }
+    .pressWhite:active{
+      background:#fff;
+      border-color:var(--review-bd);
+      color:var(--review-fg);
+    }
+
+    .pill input[type="checkbox"]{
+      width:18px; height:18px; margin:0;
+      accent-color:#88c;
+      transform:translateY(.5px);
+    }
+    .reviewUI input[type="checkbox"]{ accent-color:var(--review-accent); }
+    .pill .count{ opacity:.85; font-variant-numeric:tabular-nums; }
+
+    /* 1行目/2行目高さ調整 */
+    .topbar .badge,
+    .topbar-right button.small{
+      padding-top:12px; padding-bottom:12px;
+    }
+
+    /* 復習行 */
+    .reviewRow{
+      display:flex; align-items:center; gap:10px;
+      flex-wrap:nowrap;
+    }
+    .reviewRow-right{
+      margin-left:auto;
+      display:flex; align-items:center; gap:10px;
+    }
+    .reviewRow .pill,
+    .reviewRow button.small{
+      padding-top:12px; padding-bottom:12px;
+    }
+    @media (max-width:360px){
+      .reviewRow{ flex-wrap:wrap; }
+      .reviewRow-right{
+        width:100%;
+        justify-content:flex-end;
+        margin-left:0;
+      }
+    }
+
+    /* 範囲 + Auto + 現在No */
+    .rangeWrap{
+      width:100%;
+      display:grid;
+      grid-template-columns:1fr auto;
+      row-gap:6px;
+      column-gap:10px;
+    }
+    .rangeTop{ grid-column:1 / 3; display:contents; }
+    .rangeBadge{
+      grid-column:1;
+      width:fit-content;
+      justify-self:start;
+    }
+    #autoBtn{ grid-column:2; white-space:nowrap; }
+    .rangeNow{
+      grid-column:2;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding-left:2px;
+    }
+    @media (max-width:360px){
+      .rangeWrap{ grid-template-columns:1fr; }
+      #autoBtn, .rangeNow{ grid-column:1; }
+    }
+
+    .rangeInput{
+      width:3.5em;
+      padding:6px;
+      border:1px solid var(--bd);
+      border-radius:10px;
+      font-size:14px;
+      background:transparent;
+      color:inherit;
+      text-align:left;
+    }
+    .rangeInput::-webkit-outer-spin-button,
+    .rangeInput::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+    .rangeInput[type="number"]{ appearance:textfield; }
+
+    .word-no,.word-num-header{
+      font-size:14px;
+      font-weight:600;
+      color:var(--muted);
+      line-height:1;
+      user-select:none;
+    }
+
+    .displayArea{ min-height:155px; }
+    .word{ margin:18px 0 10px; line-height:1.1; word-break:break-word; }
+    .word-text{ font-size:30px; font-weight:400; }
+    .meaning{
+      font-size:20px;
+      margin:10px 0 0;
+      min-height:40px;
+      word-break:break-word;
+      overflow-wrap:anywhere;
+    }
+
+    .btns{
+      display:flex;
+      gap:10px;
+      margin-top:16px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    #nextBtn{ width:100%; }
+
+    /* 復習リストに追加 */
+    .missBox{
+      display:none;
+      margin-top:12px;
+      padding:6px;
+      border:1px solid var(--bd);
+      border-radius:12px;
+      align-items:center;
+      gap:10px;
+      background:rgba(0,0,0,0.02);
+
+      width:100%;
+      box-sizing:border-box;
+      justify-content:center;
+      cursor:pointer;
+    }
+    .missBox.show{ display:flex; }
+    .missBox input{ width:22px; height:22px; margin:0; cursor:pointer; }
+    .missBox .label{ font-size:14px; user-select:none; white-space:nowrap; }
+
+    /* 探す行 */
+    .searchRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:nowrap;
+    }
+    .searchRow-right{
+      margin-left:auto;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:nowrap;
+      min-width:0;
+    }
+    .searchRow > button,
+    .searchRow-right > button{ font-size:14px; }
+
+    /* 発音速度 */
+    .speedBox{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      padding:8px;
+      border:1px solid var(--bd);
+      border-radius:999px;
+      background:transparent;
+      user-select:none;
+      width:fit-content;
+    }
+    .speedBox input[type="range"]{ width:48px; margin:0; }
+    .speedBox .val{
+      font-size:13px;
+      font-variant-numeric:tabular-nums;
+      white-space:nowrap;
+      opacity:.9;
+      min-width:2.0em;
+      text-align:right;
+    }
+
+    /* Auto時間 */
+    .autoTimeRow{
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:nowrap;
+    }
+    .autoTimeBadge{
+      flex:0 0 auto;
+      width:fit-content;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      flex-wrap:nowrap;
+      overflow:hidden;
+    }
+    .msInput{
+      width:2.5em;
+      padding:4px 8px;
+      border:1px solid var(--bd);
+      border-radius:10px;
+      font-size:14px;
+      background:transparent;
+      color:inherit;
+    }
+    .msInput::-webkit-outer-spin-button,
+    .msInput::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+    .msInput[type="number"]{ appearance:textfield; }
+    .miniLbl{ font-size:13px; opacity:.85; }
+    .unit{ font-size:12px; opacity:.75; }
+    button.small.miniBtn{
+      font-size:14px;
+      padding:6px 8px;
+      border-radius:999px;
+      line-height:1;
+      white-space:nowrap;
+    }
+
+    /* WakeLock badge */
+    .wakeBadge{
+      position:fixed;
+      top:calc(env(safe-area-inset-top) + 8px);
+      right:8px;
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--bd);
+      background:rgba(255,255,255,0.75);
+      user-select:none;
+      display:none;
+      z-index:99999;
+      align-items:center;
+      gap:8px;
+    }
+    .wakeBadge.show{ display:inline-flex; }
+    .wakeDot{ width:7px; height:7px; border-radius:999px; background:#999; }
+    .wakeDot.on{ background:#22c55e; }
+    .wakeDot.off{ background:#ef4444; }
+
+    /* ダーク */
+    body.dark{ background:#0f1115; color:#e9e9ea; }
+    body.dark .card{ background:var(--card-dark); border-color:var(--bd-dark); }
+    body.dark .badge,
+    body.dark button.small,
+    body.dark .pill{
+      border-color:var(--bd-dark);
+      background:rgba(255,255,255,0.03);
+      color:#d6d6d8;
+    }
+    body.dark button{
+      background:#1f2430;
+      border-color:var(--bd-dark);
+      color:#e9e9ea;
+    }
+    body.dark .rangeInput,
+    body.dark .msInput,
+    body.dark .speedBox{ border-color:var(--bd-dark); }
+    body.dark .word-num-header{ color:#aaa; }
+    body.dark .reviewUI{
+      background:rgba(255,255,255,0.06);
+      border-color:var(--bd-dark);
+      color:#e5e7eb;
+    }
+    body.dark .pressWhite:active{
+      background:rgba(255,255,255,0.16);
+      border-color:var(--bd-dark);
+      color:#e5e7eb;
+    }
+    body.dark .missBox{
+      border-color:var(--bd-dark);
+      background:rgba(255,255,255,0.03);
+    }
+    body.dark .wakeBadge{
+      border-color:var(--bd-dark);
+      background:rgba(0,0,0,0.25);
+    }
+
+    /* ===== wheel modal ===== */
+    .modalOverlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.35);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 14px);
+      z-index:9999;
+    }
+    .modalOverlay.show{ display:flex; }
+
+    .modalSheet{
+      width:min(500px,100%);
+      border-radius:18px;
+      border:1px solid var(--bd);
+      background:#fff;
+      color:#111;
+      box-shadow:0 12px 40px rgba(0,0,0,.18);
+      overflow:hidden;
+      transform:translateY(8px);
+      animation:sheetIn .16s ease-out forwards;
+      max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    @keyframes sheetIn{ to{ transform:translateY(0); } }
+    body.dark .modalSheet{
+      background:#171a21;
+      color:#e9e9ea;
+      border-color:var(--bd-dark);
+      box-shadow:0 12px 40px rgba(0,0,0,.35);
+    }
+
+    .modalHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:6px 12px;
+      border-bottom:1px solid var(--bd);
+      gap:10px;
+    }
+    body.dark .modalHeader{ border-bottom-color:var(--bd-dark); }
+    .modalTitle{
+      font-size:14px;
+      font-weight:700;
+      letter-spacing:.02em;
+      opacity:.95;
+      user-select:none;
+    }
+    .mini{
+      font-size:14px;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--bd);
+      background:transparent;
+      color:inherit;
+      cursor:pointer;
+    }
+    body.dark .mini{
+      border-color:var(--bd-dark);
+      background:rgba(255,255,255,0.03);
+    }
+
+    .wheelSearchRow{
+      display:flex;
+      gap:8px;
+      padding:6px;
+      border-bottom:1px solid var(--bd);
+    }
+    body.dark .wheelSearchRow{ border-bottom-color:var(--bd-dark); }
+
+    .wheelSearch{
+      flex:1;
+      border:1px solid var(--bd);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:14px;
+      background:transparent;
+      color:inherit;
+      outline:none;
+    }
+    body.dark .wheelSearch{ border-color:var(--bd-dark); }
+
+    .wheelArea{ position:relative; padding:12px 12px 2px; }
+    .wheelViewport{
+      position:relative;
+      height:calc(var(--wheel-item-h) * 7);
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      scroll-snap-type:y mandatory;
+      overscroll-behavior:contain;
+      border-radius:16px;
+      border:1px solid var(--bd);
+      background:rgba(0,0,0,0.02);
+      touch-action:pan-y;
+    }
+    body.dark .wheelViewport{
+      border-color:var(--bd-dark);
+      background:rgba(255,255,255,0.03);
+    }
+    .wheelFadeTop,.wheelFadeBottom{
+      pointer-events:none;
+      position:absolute;
+      left:12px; right:12px;
+      height:44px;
+      z-index:2;
+    }
+    .wheelFadeTop{ top:12px; background:linear-gradient(to bottom,var(--wheel-fade),rgba(255,255,255,0)); }
+    .wheelFadeBottom{ bottom:2px; background:linear-gradient(to top,var(--wheel-fade),rgba(255,255,255,0)); }
+    body.dark .wheelFadeTop{ background:linear-gradient(to bottom,var(--wheel-fade-dark),rgba(15,17,21,0)); }
+    body.dark .wheelFadeBottom{ background:linear-gradient(to top,var(--wheel-fade-dark),rgba(15,17,21,0)); }
+
+    .wheelList{ padding:calc(var(--wheel-item-h)*3) 0; margin:0; list-style:none; }
+    .wheelItem{
+      height:var(--wheel-item-h);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      scroll-snap-align:center;
+      user-select:none;
+      padding:0 14px;
+    }
+    .wheelItemInner{
+      width:100%;
+      max-width:92%;
+      text-align:left;
+      padding:8px 10px;
+      border-radius:14px;
+      border:1px solid transparent;
+      line-height:1.15;
+      word-break:break-word;
+      overflow-wrap:anywhere;
+      display:grid;
+      grid-template-columns:3.2em 1fr;
+      column-gap:10px;
+      align-items:center;
+    }
+    .wheelItemInner .num{
+      font-size:12px;
+      opacity:.70;
+      font-variant-numeric:tabular-nums;
+      user-select:none;
+    }
+    .wheelItemInner .main{ font-size:18px; font-weight:500; }
+    .wheelItemInner .ja{
+      display:block;
+      font-size:12px;
+      opacity:.70;
+      margin-top:2px;
+      line-height:1.2;
+    }
+    .wheelItem.isActive .wheelItemInner{
+      border-color:rgba(100,116,139,0.25);
+      background:rgba(100,116,139,0.06);
+    }
+
+    .wheelHint{
+      font-size:12px;
+      opacity:.75;
+      padding:0 12px 10px;
+      user-select:none;
+      min-height:1.2em;
+    }
+    .wheelFooter{
+      display:flex;
+      gap:10px;
+      padding:8px;
+      border-top:1px solid var(--bd);
+      justify-content:flex-end;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    body.dark .wheelFooter{ border-top-color:var(--bd-dark); }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1 id="pageTitle" class="page-title"></h1>
+
+    <div class="topbar">
+      <div class="badge" id="progress">0 / 0</div>
+      <div class="topbar-right">
+        <button id="resetBtn" class="small reviewUI" type="button">Reset</button>
+        <button class="small reviewUI pressWhite" id="clearWrongBtn" type="button">復習Reset</button>
+      </div>
+    </div>
+
+    <div class="row reviewRow">
+      <label class="pill togglePill reviewUI" for="wrongOnlyToggle">
+        <input type="checkbox" id="wrongOnlyToggle" />
+        復習 <span class="count" id="wrongCount">(0)</span>
+      </label>
+
+      <div class="reviewRow-right">
+        <button class="small toggle" id="audioToggle" type="button">🔊</button>
+        <button class="small toggle" id="themeToggle" type="button">🌙</button>
+        <button class="small toggle" id="orderToggle" type="button">🔀</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="rangeWrap">
+        <div class="rangeTop">
+          <label class="badge rangeBadge">
+            No
+            <input id="rangeFrom" class="rangeInput" type="number" min="1">
+            〜
+            <input id="rangeTo" class="rangeInput" type="number" min="1">
+          </label>
+
+          <button class="small toggle" id="autoBtn" type="button">▶︎ Auto</button>
+        </div>
+
+        <div class="rangeNow">
+          <span class="word-no">No</span>
+          <span id="wordNumHeader" class="word-num-header"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="displayArea">
+      <div class="word">
+        <span class="word-text" id="wordText">（reading…）</span>
+      </div>
+      <div class="meaning" id="meaning"></div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" id="nextBtn" type="button">はじめる</button>
+    </div>
+
+    <label class="missBox reviewUI" id="missBox">
+      <input type="checkbox" id="missToggle">
+      <span class="label">復習リストに追加</span>
+    </label>
+
+    <div class="btns searchRow">
+      <button id="wheelOpenBtn" type="button">🎡 探す</button>
+
+      <div class="searchRow-right">
+        <div class="speedBox" title="発音速度を調整します">
+          <input id="rateRange" type="range" min="0.6" max="1.2" step="0.1" value="1.0" />
+          <span id="rateLabel" class="val">1.0x</span>
+        </div>
+
+        <button id="speakBtn" type="button">🔊 発音</button>
+      </div>
+    </div>
+
+    <div class="row autoTimeRow">
+      <div class="badge autoTimeBadge">
+        ▶︎
+        <span class="miniLbl">英</span>
+        <input id="autoEnMs" class="msInput" type="number" min="200" max="9999" step="100">
+        <span class="unit">ms</span>
+        <span class="unit">:</span>
+        <span class="miniLbl">日</span>
+        <input id="autoJaMs" class="msInput" type="number" min="200" max="9999" step="100">
+        <span class="unit">ms</span>
+      </div>
+      <button class="small miniBtn reviewUI pressWhite" id="autoTimeResetBtn" type="button">初期値</button>
+    </div>
+
+    <div class="wakeBadge" id="wakeBadge" title="Auto中はスリープしにくくします（対応ブラウザのみ）">
+      <span class="wakeDot off" id="wakeDot"></span>
+      <span id="wakeText">Wake: OFF</span>
+    </div>
+  </div>
+
+  <!-- 🎡 モーダル -->
+  <div class="modalOverlay" id="wheelOverlay" aria-hidden="true">
+    <div class="modalSheet" role="dialog" aria-modal="true" aria-labelledby="wheelTitle">
+      <div class="modalHeader">
+        <div class="modalTitle" id="wheelTitle">🎡 単語検索（英or日）</div>
+        <button class="mini" id="wheelCloseBtn" type="button">閉じる</button>
+      </div>
+
+      <div class="wheelSearchRow">
+        <input class="wheelSearch" id="wheelSearchInput" type="search" placeholder="キーワード検索" autocomplete="off" />
+        <button class="mini" id="wheelClearSearchBtn" type="button">クリア</button>
+      </div>
+
+      <div class="wheelArea">
+        <div class="wheelFadeTop"></div>
+        <div class="wheelFadeBottom"></div>
+
+        <div class="wheelViewport" id="wheelViewport">
+          <ul class="wheelList" id="wheelList"></ul>
+        </div>
+      </div>
+
+      <div class="wheelHint" id="wheelHint"></div>
+
+      <div class="wheelFooter">
+        <button class="mini" id="wheelJumpBtn" type="button">この単語へ移動</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========================
+   VOCAB（あなたのデータに置換）
+========================= */
+const VOCAB = [
+  { en: "a piece of ～", ja: "１つの～" },
+  { en: "a couple of ～", ja: "２つの～、２，３の～" },
+  { en: "a number of ～", ja: "いくつもの～、かなり多くの～" },
+  { en: "dozens of ～", ja: "数十もの～、何ダースもの～" },
+  { en: "plenty of ～", ja: "たくさんの～" },
+  { en: "a great/good deal (of ～)", ja: "たくさん（の～）" },
+  { en: "at home", ja: "①在宅して、家庭で ②くつろいで ③精通して" },
+  { en: "in time", ja: "①間に合って ②やがて、そのうちに" },
+  { en: "in fashion", ja: "流行して" },
+  { en: "on time", ja: "時間通りに［で］" },
+  { en: "on duty", ja: "当番で、勤務時間中で" },
+  { en: "on schedule", ja: "予定通りで、定時に" },
+  { en: "up to date", ja: "最新（式）の" },
+  { en: "be aware of ～", ja: "～を知っている、～に気づいている" },
+  { en: "be made of ～", ja: "～でできている" },
+  { en: "be capable of ～", ja: "～ができる、～の可能性がある" },
+  { en: "be afraid of ～", ja: "～を恐れる［怖がる］、～を心配している" },
+  { en: "be sure of/about ～", ja: "～を確信している" },
+  { en: "be composed of ～", ja: "～から構成されている" },
+  { en: "be based on/upon ～", ja: "～に基づいている" },
+  { en: "be different from ～", ja: "～とは違っている" },
+  { en: "be absent from ～", ja: "～を欠席する" },
+  { en: "be engaged in ～", ja: "～に従事している、忙しく～をしている" },
+  { en: "be responsible for ～", ja: "～に責任がある" },
+  { en: "be married (to ～)", ja: "（～と）結婚している" },
+  { en: "be satisfied with ～", ja: "～に満足している" },
+  { en: "be curious about ～", ja: "～を知りたがる、～に好奇心の強い" },
+  { en: "be well off", ja: "裕福である" },
+  { en: "be likely to do", ja: "…しそうである" },
+  { en: "be willing to do", ja: "…してもかまわない" },
+  { en: "be about to do", ja: "今にも…しようとしている" },
+  { en: "lead to ～", ja: "～（という結果）を引き起こす、～へと通じる" },
+  { en: "refer to ～", ja: "①～に言及する ②～を参照する、～に問い合わせる" },
+  { en: "contribute to ～", ja: "～の一因となる、～に貢献する、～に寄付［寄稿］する" },
+  { en: "amount to ～", ja: "総計～になる" },
+  { en: "depend on/upon ～", ja: "～に頼る、～しだいである" },
+  { en: "focus on ～", ja: "～に集中する、～に焦点を合わせる" },
+  { en: "rely on/upon ～", ja: "～に頼る" },
+  { en: "get on (～)", ja: "①（公共の乗り物など）に乗る ②仲良くやっていく、（なんとか）やっていく" },
+  { en: "insist on/upon ～", ja: "～を主張する" },
+  { en: "concentrate on ～", ja: "～に集中する" },
+  { en: "look for ～", ja: "～を探す［捜す］" },
+  { en: "search for ～", ja: "～を探す［捜す］" },
+  { en: "prepare for ～", ja: "～の準備をする、～に備える" },
+  { en: "think of ～", ja: "①～をしようかなと思う、～のことを考える ②～を思いつく ③～を思い出す" },
+  { en: "consist of ～", ja: "～から成り立っている" },
+  { en: "complain about/of ～", ja: "（苦痛など）を訴える、～について不平を言う" },
+  { en: "die of/from ～", ja: "～で死ぬ" },
+  { en: "suffer from ～", ja: "（病気など）で苦しむ［悩む］" },
+  { en: "result from ～", ja: "～から起こる" },
+  { en: "graduate from ～", ja: "～を卒業する" },
+  { en: "differ from ～", ja: "～と異なる" },
+  { en: "recover from ～", ja: "～から立ち直る［回復する］" },
+  { en: "hear from ～", ja: "～から便り［電話・伝言］がある" },
+  { en: "believe in ～", ja: "～の価値［存在］を信じる、～を信用する" },
+  { en: "succeed in ～", ja: "～に成功する" },
+  { en: "major in ～", ja: "（大学生が）～を専攻する" },
+  { en: "abound in/with ～", ja: "（場所が）～に富む" },
+  { en: "care about ～", ja: "～に気にかける、～に関心を持つ" },
+  { en: "bring about ～", ja: "～を引き起こす" },
+  { en: "deal with ～", ja: "～を扱う,処理する" },
+  { en: "go through ～", ja: "①～を通過する ②（苦しみなど）を経験する" },
+  { en: "give up ～", ja: "～をあきらめる、～捨てる［やめる］" },
+  { en: "grow up", ja: "大人になる、（事態などが）生じる" },
+  { en: "pick up ～", ja: "～を（車などに）乗せる、～拾う" },
+  { en: "set up ～", ja: "～を立てる［建てる］、～を創設する［始める］" },
+  { en: "wake up (～)", ja: "目が覚める、（人）の目を覚まさせる" },
+  { en: "brush up (on) ～", ja: "（語学など）をやり直して磨きをかける" },
+  { en: "find out ～", ja: "（調査などの結果）を見つけ出す、（真相）を知る" },
+  { en: "carry out ～", ja: "～を実行する" },
+  { en: "point out ～", ja: "～を指摘する" },
+  { en: "figure out (～)", ja: "～を理解する、～を計算する、～を解く" },
+  { en: "turn out (～)", ja: "①～であることが分かる、（結果的に）～になる ②～を産出する ③（催しなどに）繰り出す" },
+  { en: "fill out ～", ja: "（書類など）に書き込む" },
+  { en: "pick out ～", ja: "～を選ぶ" },
+  { en: "put on ～", ja: "～を（身に）つける、（電気器具ガスなど）をつける" },
+  { en: "work on (～)", ja: "①働き続ける ②～に取り組む、～を手がける、～に影響を与える、（薬などが）～に効く" },
+  { en: "try on ～", ja: "～を試着する" },
+  { en: "turn on (～)", ja: "（スイッチなど）をつける、（水・ガスなど）を出す、（明かりなどが）つく" },
+  { en: "turn off (～)", ja: "（スイッチなど）を消す、（水・ガスなど）を止める、（明かりなどが）消える" },
+  { en: "take off (～)", ja: "①～を脱ぐ、～を取り除く ②離陸する、（流行・売り上げなどが）急増［急伸］する ③～を休暇としてとる" },
+  { en: "get along", ja: "①暮らす、（なんとか）やっていく ②仲良くやっていく、進む" },
+  { en: "get together (～)", ja: "集まる、～を集める" },
+  { en: "calm down (～)", ja: "～を落ち着かせる［静める］、落ち着く［静まる］" },
+  { en: "think over ～", ja: "～をよく考える" },
+  { en: "keep doing", ja: "…し続ける" },
+  { en: "take place", ja: "催される、起こる" },
+  { en: "play a role/part (in ～)", ja: "（～で）役割を演じる［果たす］" },
+  { en: "make sure (～)", ja: "（～を）確かめる、確実に～をする" },
+  { en: "make sense", ja: "意味をなす、道理にかなう" },
+  { en: "make a difference", ja: "違いが生じる、重要である" },
+  { en: "make a mistake", ja: "間違いをする" },
+  { en: "make progress", ja: "進歩する" },
+  { en: "make up one's mind", ja: "決心する" },
+  { en: "do one's best", ja: "最善を尽くす" },
+  { en: "keep one's promise/word", ja: "約束を守る" },
+  { en: "get lost", ja: "道に迷う" },
+  { en: "enjoy oneself", ja: "楽しい時を過ごす" },
+  { en: "have/take ～ off", ja: "～を休みとしてとる" },
+  { en: "pay attention to ～", ja: "～に注意を払う" }
+  { en: "take care of ～", ja: "～に気をつける、～の世話をする" },
+  { en: "look forward to ～", ja: "～を楽しみに待つ" },
+  { en: "ask for ～", ja: "～を求める" },
+  { en: "get rid of ～", ja: "（厄介なもの）を取り除く" },
+  { en: "fall in love with ～", ja: "（事・物）を大好きになる、（人）と恋に落ちる" },
+  { en: "used to do/be", ja: "～したものだった、昔は～であった" },
+  { en: "had better do", ja: "…したほうがいい、…すべきだ" },
+  { en: "help A with B", ja: "AのBを手伝う、AをBで助ける" },
+  { en: "prefer A to B", ja: "ＢよりＡを好む" },
+  { en: "turn A into B", ja: "ＡをＢに（質的に）変える" },
+  { en: "prevent A from B", ja: "AがBするのを妨げる、AをBから防ぐ" },
+  { en: "remind A of/about B", ja: "AにBを思い出させる" },
+  { en: "regard A as B", ja: "AをBとみなす" },
+  { en: "associate A with B", ja: "ＡをＢと結びつけて考える" },
+  { en: "inform A of/about B", ja: "AにBを知らせる" },
+  { en: "after all", ja: "結局（は）、やっぱり" },
+  { en: "all the time", ja: "いつも、常に" },
+  { en: "all the way", ja: "ずっと、はるばる" },
+  { en: "～ and so on/forth", ja: "～など" },
+  { en: "and yet", ja: "それにも関わらず" },
+  { en: "as ～ as possible/one can", ja: "できる限り～" },
+  { en: "as a result (of ～)", ja: "（～の）結果として" },
+  { en: "as a whole", ja: "全体として（の）" },
+  { en: "as usual", ja: "いつものように" },
+  { en: "at best", ja: "よくても、せいぜい" },
+  { en: "at least", ja: "少なくとも" },
+  { en: "at (the) most", ja: "せいぜい、多くても" },
+  { en: "at a time", ja: "一度に" },
+  { en: "at once", ja: "①すぐに ②同時に" },
+  { en: "at all", ja: "①（否定文で）まったく ②（疑問文で）一体、そもそも ③（肯定文で）そもそも、ともかく" },
+  { en: "at any rate", ja: "とにかく、いずれにしても" },
+  { en: "at random", ja: "無作為に、手当たり次第に" },
+  { en: "more or less", ja: "①多かれ少なかれ、程度の差はあれ②ほぼ、おおよそ" },
+  { en: "at times", ja: "ときどき" },
+  { en: "between you and me", ja: "ここだけの話だが、内緒だが" },
+  { en: "by hand", ja: "手で" },
+  { en: "by mistake", ja: "間違って" },
+  { en: "by no means", ja: "全然～ない" },
+  { en: "by the way", ja: "ところで" },
+  { en: "far from ～", ja: "～からほど遠い、～どころではない" },
+  { en: "for a while", ja: "しばらくの間" },
+  { en: "for example/instance", ja: "例えば" },
+  { en: "for one thing", ja: "一つには" },
+  { en: "in a hurry", ja: "急いで、あせって" },
+  { en: "in addition (to ～)", ja: "（～に）加えて、さらに" },
+  { en: "in any case/event", ja: "とにかく、いずれにしても" },
+  { en: "in detail", ja: "詳細に" },
+  { en: "in fact", ja: "①実際に ②（前言と対照して）（ところが）実際は" },
+  { en: "in general", ja: "①一般に ②（名詞の後に置いて）一般の" },
+  { en: "in other words", ja: "言い換えれば、つまり" },
+  { en: "in public", ja: "人前で、公然と" },
+  { en: "in reality", ja: "（ところが）実際には、（想像などではなく）現実に" },
+  { en: "in the end", ja: "結局は、ついには" },
+  { en: "in the future", ja: "将来は、今後は" },
+  { en: "in the long run", ja: "長い目で見れば、結局は" },
+  { en: "no doubt", ja: "おそらく、たぶん" },
+  { en: "no longer ～", ja: "もはや～ない" },
+  { en: "not always ～", ja: "必ずしも～ではない" },
+  { en: "on earth", ja: "①（疑問詞を強めて）一体全体 ②（最上級を強めて）世界中で" },
+  { en: "on the other hand", ja: "他方では、これに反して" },
+  { en: "so far", ja: "今までの所" },
+  { en: "sooner or later", ja: "遅かれ早かれ" },
+  { en: "these days", ja: "近頃は、この頃は" },
+  { en: "according to ～", ja: "①～によれば ②～に従って、～に応じて" },
+  { en: "owing/due to ～", ja: "～のために" },
+  { en: "thanks to ～", ja: "～のおかげで" },
+  { en: "in spite of ～", ja: "～にもかかわらず" },
+  { en: "all over (～)", ja: "（～の）至る所に［で］、一面に" },
+  { en: "apart from ～", ja: "①～のほかに ②～を除いては" },
+  { en: "aside from ～", ja: "～を除いては、～のほかに" },
+  { en: "ahead of ～", ja: "（時間的に）～より先に、（位置的に）～の前に、～より進歩して" },
+  { en: "in search of ～", ja: "～を求めて［探して］" },
+  { en: "in preparation", ja: "～の準備中で" },
+  { en: "each other", ja: "お互い" },
+  { en: "so ～ that …", ja: "（結果を表して）非常に～なので…する" },
+  { en: "A as well as B", ja: "BだけでなくAも" },
+  { en: "not only A but (also) B", ja: "AだけでなくBも" },
+  { en: "as if/though …", ja: "まるで…するように" },
+  { en: "as soon as …", ja: "…するやいなや" },
+  { en: "Something is wrong with ～.", ja: "～はどこか調子がおかしい［故障している］" },
+  { en: "bring up ～", ja: "①～を育てる②（問題・話題など）を持ち出す = raise" },
+  { en: "call off ～", ja: "～を中止する［取り消す］ = cancel" },
+  { en: "carry on (～)", ja: "（～を）続ける = happen, occur" },
+  { en: "come about", ja: "起こる = continue" },
+  { en: "come by ～", ja: "～を手に入れる = get, obtain" },
+  { en: "come up with ～", ja: "（解決策など）を思いつく = devise, invent, conceive" },
+  { en: "do away with ～", ja: "～を取り除く、～を廃止する = eliminate, abolish" },
+  { en: "find fault with ～", ja: "～にけちをつける、～を非難する = criticize" },
+  { en: "get over", ja: "～を克服する、（病気など）から回復する = overcome" },
+  { en: "hand in ～", ja: "（手渡しで）～を提出する［届ける］ = submit" },
+  { en: "learn ～ by heart", ja: "～を暗記する = memorize" },
+  { en: "look into ～", ja: "～を調べる = investigate" },
+  { en: "look over ～", ja: "～を（ざっと）調べる = examine" },
+  { en: "pass away", ja: "死ぬ = die" },
+  { en: "put off ～", ja: "～を延期する = postpone" },
+  { en: "put together ～", ja: "（部品など）を組み立てる、（考えなど）をまとめる = assemble, build" },
+  { en: "put up ～", ja: "①～を掲げる、～を上げる、～を建てる②～を泊める = raise, lift, erect, construct/accommodete" },
+  { en: "put up with ～", ja: "～を我慢する = tolerate, endure, stand" },
+  { en: "set about ～", ja: "～を始める = begin, start" },
+  { en: "set in", ja: "始まる = begin, start" }
+  { en: "take after ～", ja: "～に似ている = resemble" },
+  { en: "of importance", ja: "重要な = important" },
+  { en: "along with ～", ja: "～と一緒に、～に加えて = besides" },
+  { en: "in connection with ～", ja: "～に関連して = concerning, about" },
+  { en: "on board (～)", ja: "（乗り物）に乗って、乗って（た） = aboard" },
+  { en: "prior to ～", ja: "～より前で = before" },
+  { en: "(every) once in a while", ja: "ときどき = sometimes, occasionally" },
+  { en: "above all (else)", ja: "とりわけ、特に = especially, particularly" },
+  { en: "all of a sudden", ja: "突然に、不意に = suddenly, abruptly" },
+  { en: "(all/just) the same", ja: "それでもやはり = nevertheless" },
+  { en: "as a (general) rule", ja: "普通は、概して = generally, usually" },
+  { en: "as well", ja: "～もまた = too, also" },
+  { en: "before long", ja: "間もなく = soon" },
+  { en: "by degrees", ja: "徐々に = gradually" },
+  { en: "for good", ja: "永久に = forever, permanently" },
+  { en: "for the most part", ja: "大体は、大部分は = mostly, generally" },
+  { en: "from time to time", ja: "ときどき = sometimes, occasionally" },
+  { en: "in advance", ja: "前もって = beforehand" },
+  { en: "in all", ja: "全部で = altogether" },
+  { en: "in particular", ja: "特に = especially, particularly" },
+  { en: "on occasion(s)", ja: "ときどき = sometimes, occasionally" },
+  { en: "on purpose", ja: "わざと、故意に = intentionally, purposely" },
+  { en: "over and over (again)", ja: "何度も繰り返し = repeatedly" },
+  { en: "right away", ja: "今すぐ、直ちに = immediately" },
+  { en: "agree to ～", ja: "（提案・計画・条件など）に同意する" },
+  { en: "agree with ～", ja: "（人が）（人・考えなど）に同意する、（気候・食物などが）～に合う、～に一致［適合］する" },
+  { en: "apply for ～", ja: "（仕事・許可など）を申し込む［志願する］" },
+  { en: "apply to ～", ja: "①～に当てはまる ②（人・場所・組織）に申し込む" },
+  { en: "remember doing", ja: "…したのを覚えている" },
+  { en: "remember to do", ja: "忘れずに…する" },
+  { en: "catch up with/to ～", ja: "（遅れた状態から）～に追いつく" },
+  { en: "keep pace with ～", ja: "～に遅れずについていく" },
+  { en: "keep up with ～", ja: "～に遅れずについていく" },
+  { en: "leave ～ alone", ja: "～をそのままにしておく、～に干渉しない" },
+  { en: "let alone ～", ja: "～は言うまでもなく" },
+  { en: "correspond to ～", ja: "～に一致する、～に相当する" },
+  { en: "correspond with ～", ja: "～とやりとりを交わす、～と文通する" },
+  { en: "hit on/upon ～", ja: "～を思いつく、～に出くわす" },
+  { en: "occur to ～", ja: "ふと（人）の心に浮かぶ" },
+  { en: "dawn on ～", ja: "（考えなどが）（人）にわかり始める［思い浮かぶ］" },
+  { en: "make the best of ～", ja: "（不利な状況で）～を最大限に利用する［善処する］" },
+  { en: "make the most of ～", ja: "～を最大限に利用する" },
+  { en: "lay off ～", ja: "～を一時解雇する" },
+  { en: "lay out ～", ja: "～を並べる、～を設計する" },
+  { en: "be concerned about/for ～", ja: "～を心配している" },
+  { en: "be concerned with/in ～", ja: "～に関係している" },
+  { en: "be free from/of ～", ja: "～がない" },
+  { en: "be free to do", ja: "自由に…できる" },
+  { en: "be familiar to ～", ja: "（人）によく知られている" },
+  { en: "be familiar with ～", ja: "（物事）をよく知っている" },
+  { en: "be true of ～", ja: "～に当てはめる" },
+  { en: "be true to ～", ja: "～に忠実である" },
+  { en: "be tired from/with ～", ja: "～で疲れる" },
+  { en: "be tired of ～", ja: "～に飽きる［うんざりしている］" },
+  { en: "be bound for ～", ja: "～行きである" },
+  { en: "be bound to do", ja: "きっと…する、…する責任がある" },
+  { en: "be anxious about ～", ja: "～を心配している" },
+  { en: "be anxious to do", ja: "…したがる" },
+  { en: "～ to come", ja: "（名詞の後に置いて）将来の～、来たるべき～" },
+  { en: "～ to go", ja: "（名詞の後に置いて）あと～、残りの～、持ち帰り用の～" },
+  { en: "anything but ～", ja: "全然～ではない、～どころではない" },
+  { en: "nothing but ～", ja: "ただ～だけ、～にすぎない" },
+  { en: "at first", ja: "最初は" },
+  { en: "for the first time", ja: "初めて" },
+  { en: "in the way (of ～)", ja: "（～の）邪魔になって" },
+  { en: "on the way (to ～)", ja: "（～への）途中で" },
+  { en: "by now", ja: "今はもう、今頃は" },
+  { en: "for now", ja: "今のところは、当分は" },
+  { en: "on the contrary", ja: "それどころか、それに反して" },
+  { en: "to the contrary", ja: "それと反対の［に］" },
+  { en: "in the air", ja: "未決定で、空中で［の］、（雰囲気などが）感じられて" },
+  { en: "on the air", ja: "放送中の［で］" },
+  { en: "by chance", ja: "偶然に" },
+  { en: "by any chance", ja: "（疑問文で）もしかして" },
+  { en: "as a matter of course", ja: "当然のこととして" },
+  { en: "as a matter of fact", ja: "実を言うと、実際は" },
+  { en: "at a distance", ja: "ある距離を置いて" },
+  { en: "in the distance", ja: "遠方に［で］" },
+  { en: "inside out", ja: "裏返して、ひっくり返して" },
+  { en: "upside down", ja: "逆さまに、ひっくり返って" },
+  { en: "provide A with B", ja: "AにBを供給する" },
+  { en: "supply A with B", ja: "AにBを供給する" },
+  { en: "mistake A for B", ja: "AをBと間違える" },
+  { en: "take A for B", ja: "AをBだと（誤って）思う［間違える］" },
+  { en: "look on/upon A as B", ja: "AをBと見なす" },
+  { en: "think of A as B", ja: "AをBと見なす" },
+  { en: "distinguish A from B", ja: "AをBと区別する" },
+  { en: "tell A from B", ja: "AとBを区別する" },
+  { en: "participate in ～", ja: "～に参加する" },
+  { en: "take part in ～", ja: "～に参加する" },
+  { en: "compensate for ～", ja: "～の埋め合わせをする、～を補償する" },
+  { en: "make up (～)", ja: "①～を構成する、～を作り上げる ②仲直りをする ③～の埋め合わせをする" },
+  { en: "care for ～", ja: "①～の世話をする ②～を好む、～を望む" },
+  { en: "look after ～", ja: "～の世話をする" },
+  { en: "show up (～)", ja: "①（予定の所に）現れる ②目立つ、～を目立たせる" },
+  { en: "turn up (～)", ja: "①現れる、起こる ②（ガス・音量など）を大きくする、～を探し出す" },
+  { en: "consist in ～", ja: "～にある" },
+  { en: "lie in ～", ja: "～にある" },
+  { en: "give in (～)", ja: "①屈服する ②～を提出する" },
+  { en: "give way (to ～)", ja: "（～に）屈服する、（～に）道を譲る" }
+  { en: "stand out", ja: "際立つ、目立つ" },
+  { en: "stick out", ja: "突き出る、目立つ" },
+  { en: "cling to ～", ja: "～にくっつく、～に固執［執着］する" },
+  { en: "stick to ～", ja: "（主義・決定など）を堅持する、～にくっつく" },
+  { en: "count on/upon ～", ja: "～に頼る、～を当てする" },
+  { en: "rest on/upon ～", ja: "～に基づく、～に頼る" },
+  { en: "look out for ～", ja: "～に気をつける" },
+  { en: "watch out for ～", ja: "～に気をつける" },
+  { en: "hand over ～", ja: "～を引き渡す、～を手渡す" },
+  { en: "turn over ～", ja: "①～を引き渡す、～を譲る ②～をひっくり返す、（ページなど）をめくる、ひっくり返る" },
+  { en: "date back to ～", ja: "～にさかのぼる、～に始まる" },
+  { en: "date from ～", ja: "～から始まる、～にさかのぼる" },
+  { en: "put aside ～", ja: "～を蓄える、～をわきに置く、～を取っておく" },
+  { en: "set aside ～", ja: "～を蓄える、～を取っておく、～をわきに置く" },
+  { en: "sit up", ja: "①（寝ないで）起きている ②（寝た状態から）上半身を起こす ③きちんと座る" },
+  { en: "stay up", ja: "（寝ないで）起きている" },
+  { en: "hold back ～", ja: "～を制止する、（真相など）を隠す" },
+  { en: "keep back ～", ja: "（真相など）を隠す、～を制止する" },
+  { en: "feel sorry for ～", ja: "～を気の毒に思う、～に同情する" },
+  { en: "take/have pity on ～", ja: "～に同情する" },
+  { en: "sympathize with ～", ja: "～に同情する" },
+  { en: "take pride in ～", ja: "～を誇り［自慢］に思う" },
+  { en: "pride oneself on ～", ja: "～を誇り［自慢］に思う" },
+  { en: "surrender to ～", ja: "～に屈する" },
+  { en: "yield to ～", ja: "～に屈する、～に道を譲る" },
+  { en: "be essential to ～", ja: "～にとって不可欠である" },
+  { en: "be indispensable to/for ～", ja: "～にとって不可欠である" },
+  { en: "be equal to ～", ja: "～に等しい" },
+  { en: "be equivalent to ～", ja: "～に等しい" },
+  { en: "be apt to do", ja: "～しがちである" },
+  { en: "be inclined to do", ja: "～する傾向がある、～したい気がする" },
+  { en: "in a sense", ja: "ある意味では、ある点で" },
+  { en: "in a way", ja: "ある意味では、ある点で" },
+  { en: "first of all", ja: "まず第一に" },
+  { en: "in the first place", ja: "まず第一に" },
+  { en: "back and forth", ja: "行ったり来たり、前後［左右］に" },
+  { en: "up and down", ja: "行ったり来たり、上下に" },
+  { en: "at present", ja: "現在は、目下" },
+  { en: "at the moment", ja: "（現在時制で）現在は、（過去時制で）ちょうどその時" },
+  { en: "in a word", ja: "要するに、つまり" },
+  { en: "in short", ja: "つまり、手短に言えば" },
+  { en: "generally speaking", ja: "一般的に言えば" },
+  { en: "on the whole", ja: "全体的には、概して" },
+  { en: "all in all", ja: "全体的には、概して" },
+  { en: "in principle", ja: "理論的に（は）、原則的に（は）" },
+  { en: "in theory", ja: "理論上は" },
+  { en: "at all cost(s)/any cost", ja: "ぜひとも" },
+  { en: "by all means", ja: "①ぜひとも、必ず ②（承諾の返事として）ぜひどうぞ" },
+  { en: "as it were", ja: "いわば" },
+  { en: "so to speak", ja: "いわば" },
+  { en: "for one's (own) part", ja: "～としては、～に関する限りは" },
+  { en: "on one's part", ja: "～の側での、～としては" },
+  { en: "for the present", ja: "当分の間（は）、差し当たり" },
+  { en: "for the time being", ja: "当分の間（は）、差し当たり" },
+  { en: "close/near at hand", ja: "（距離・時間的に）すぐ近くに" },
+  { en: "(just) around the corner", ja: "（距離・時間的に）すぐ近くに" },
+  { en: "for all ～", ja: "～にもかかわらず" },
+  { en: "with all ～", ja: "～にもかかわらず" },
+  { en: "as for ～", ja: "（人・物）～について言えば、～に関する限り" },
+  { en: "as to ～", ja: "（物）～に関しては" },
+  { en: "not to mention ～", ja: "～は言うまでもなく" },
+  { en: "to say nothing of ～", ja: "～は言うまでもなく" },
+  { en: "be dependent on/upon ～", ja: "～に依存している" },
+  { en: "be independent of ～", ja: "～から独立している" },
+  { en: "in order", ja: "整頓されて、順調で、適切で" },
+  { en: "out of order", ja: "故障して、順序が狂って" },
+  { en: "look down on/upon ～", ja: "～を見下す" },
+  { en: "look up to ～", ja: "～を尊敬する" },
+  { en: "do with ～", ja: "①（couldを伴って）～があればありがたい ②（受動態で）～をすませた、～と縁を切った ③（whatを使った疑問文・否定文で）～を処理［処置］する" },
+  { en: "do without ～", ja: "～なしですます" },
+  { en: "in/within sight", ja: "見えて、視界に入って" },
+  { en: "out of sight", ja: "見えなくて、視界から消えて" },
+  { en: "at one's ease", ja: "くつろいで" },
+  { en: "ill at ease", ja: "不安で、落ち着かないで" },
+  { en: "act on/upon ～", ja: "①～に取り組む、～に作用する ②（命令・信念など）に従って行動する" },
+  { en: "break in ～", ja: "①押し入る、口を挟む ②～を慣らす" },
+  { en: "break out", ja: "①（火事・戦争などが）起こる ②（汗・吹き出物などが）出る、急にしだす" },
+  { en: "break up ～", ja: "①ばらばらになる［解散する］、～をばらばらにする［解散させる］ ②（人が）別れる、（関係などが）終わる、～を終わらせる" },
+  { en: "call for ～", ja: "①～を必要とする、～を求める ②（人）を誘い［迎え］に行く、（物）を取りに行く" },
+  { en: "call on/upon ～", ja: "①（人）を訪問する ②～に要求する" },
+  { en: "come across ～", ja: "①～を偶然見つける、～に偶然出会う ②（考えなどが）（相手に）伝わる［理解される］" },
+  { en: "come to ～", ja: "①～に達する、～に来る ②（～to do）…するようになる ③意識を回復する、正気に戻る" },
+  { en: "give out ～", ja: "①～を配る、～を発する ②（供給物・力などが）尽きる［なくなる］" },
+  { en: "go by ～", ja: "①（時などが）たつ、通り過ぎる ②～の名で通る［知られる］、～によって行動［判断］する" },
+  { en: "go off", ja: "①出かける、去る、（電灯などが）消える ②（仕掛けが）作動する、（爆薬が）爆発する、（銃などが）発射される" },
+  { en: "go on ～", ja: "①（状況などが）続く、（時間が）過ぎる ②（進行形で）起こる、行われる ③（旅行など）に出かける" },
+  { en: "go out", ja: "①出かける ②（灯火などが）消える、気絶する、死ぬ" },
+  { en: "go over ～", ja: "①～に詳細に目を通す、～を調べる ②～を復習する、～を繰り返す" },
+  { en: "go with ～", ja: "①～と付き合う、～と一緒に行く ②～に似合う" },
+  { en: "hold out ～", ja: "①（手など）を差し出す ②（希望など）を抱かせる、持ちこたえる［耐える］" },
+  { en: "hold up ～", ja: "①～を持ち上げる、～を支える、持ちこたえる ②～を遅らせる ③～に強盗に入る" },
+  { en: "live on ～", ja: "①～を常食にする ②（～の収入・金額）で生活する ③生き続ける" },
+  { en: "look to ～", ja: "①～の方を見る、～に気をつける ②～に頼る、～を当てにする" },
+  { en: "look up ～", ja: "①（辞書などで）～を調べる ②（人）を訪ねる ③（景気などが）上向く［好転する］" },
+  { en: "put out ～", ja: "①（火・明かりなど）を消す ②～を出す" },
+  { en: "settle down", ja: "①定住する、落ち着く ②（腰を据えて）始める" },
+  { en: "stand by ～", ja: "①傍観する、待機する ②～を支持［擁護］する、（約束など）を守る" },
+  { en: "stand for ～", ja: "①～を意味する、～の略である ②（否定文・疑問文で）～を許容する、～を我慢する" },
+  { en: "take in ～", ja: "①～を取り入れる、～を理解する ②～をだます ③～を見物する" },
+  { en: "take on ～", ja: "①～を引き受ける、～を雇う ②（様相・色・性質など）を呈する［帯びる］" }
+  { en: "take to ～", ja: "（習慣的に）～を始める、～にふける" },
+  { en: "take up ～", ja: "①（場所・時間）を取る、～を取り上げる ②（仕事・趣味など）を始める" },
+  { en: "turn down ～", ja: "①～を却下［拒絶］する ②（音量・火力など）を小さくする" },
+  { en: "turn in ～", ja: "①～を提出する ②～を引き渡す、～を返却する" },
+  { en: "make for ～", ja: "①～のほうへ進む ②～に寄与する［役立つ］" },
+  { en: "make out ～", ja: "①（通例canを伴い、否定文・疑問文で）～を理解する ②（通例canを伴って）～を見分ける ③（書類・小切手など）を作成する" },
+  { en: "meet with ～", ja: "①～を受ける、～を経験する ②～と（約束して）会う、～と会見する" },
+  { en: "provide for ～", ja: "①～を扶養する ②～に備える、（法律が）～を規定する" },
+  { en: "put down ～", ja: "①～を置く ②～を鎮める［抑える］" },
+  { en: "run over ～", ja: "①（車が）～をひく ②（～から）あふれる" },
+  { en: "set out ～", ja: "①出発する ②～し始める ③～を並べる、～を設計する" },
+  { en: "be due to do", ja: "①～のため［結果］である ②～する予定である" },
+  { en: "up to ～", ja: "①～まで ②～次第である、～の責任である ③（悪いこと）をしようとしている" },
+  { en: "at large", ja: "①（名詞の前に置いて）一般の、全体としての ②逃走中で、逮捕されないで" },
+  { en: "in effect", ja: "①事実上、実際は ②（法律などが）実施されて" },
+  { en: "all but ～", ja: "①～も同然、ほとんど～ ②～以外すべて" },
+  { en: "at length", ja: "①詳細に、長々と ②とうとう、ついに" },
+  { en: "next to ～", ja: "①（場所・位置）～の次の［に］ ②（否定を表す語の前に置いて）ほとんど～" },
+  { en: "on end", ja: "①連続して ②直立して、垂直にして" },
+  { en: "by way of ～", ja: "①～経由で ②～として、～のつもりで（の）" },
+  { en: "add to ～", ja: "～を増やす" },
+  { en: "adapt to ～", ja: "（環境など）に順応する［慣れる］" },
+  { en: "object to ～", ja: "～に反対する" },
+  { en: "admit to ～", ja: "～を認める［告白する］" },
+  { en: "conform to/with ～", ja: "～と一致する、～に従う［合わせる］" },
+  { en: "resort to ～", ja: "（手段など）に訴える［頼る］" },
+  { en: "keep to ～", ja: "～に沿って進む、～から離れない、～に従う" },
+  { en: "get to ～", ja: "①～に到着する ②～できる、～するようになる" },
+  { en: "adhere to ～", ja: "（主義・規則など）に忠実に従う、～にくっつく" },
+  { en: "reflect on/upon ～", ja: "～を熟考［反省］する" },
+  { en: "decide on/upon ～", ja: "～を（どれにするか）決める、（複数の選択肢から）～に決める" },
+  { en: "fall on/upon ～", ja: "（責任・仕事などが）～に降りかかる、（休日などが）～に当たる" },
+  { en: "feed on ～", ja: "～を常食［餌］にする" },
+  { en: "run into ～", ja: "～に偶然出会う、～を偶然見つける、～にぶつかる" },
+  { en: "break into ～", ja: "①～に侵入する ②急に～をしだす" },
+  { en: "enter into ～", ja: "（契約など）を取り結ぶ、（議論など）を始める" },
+  { en: "burst into ～", ja: "急に～をしだす、突然～に入る" },
+  { en: "dispose of ～", ja: "～を処分する、～を平らげる" },
+  { en: "approve of ～", ja: "～に賛成する、～を承認する" },
+  { en: "boast of/about ～", ja: "～を自慢する、～を誇らしげに話す" },
+  { en: "become of ～", ja: "（what, whatever を主語にして）～はどうなるか" },
+  { en: "derive from ～", ja: "～に由来する、～から出ている" },
+  { en: "aim at ～", ja: "～を目指す、～を狙う" },
+  { en: "interfere with ～", ja: "～の邪魔をする、～を妨げる" },
+  { en: "part with ～", ja: "（物）を（しぶしぶ）手放す" },
+  { en: "long for ～", ja: "～を切望する" },
+  { en: "send for ～", ja: "（人）を呼ぶ、（物）を取り寄せる" },
+  { en: "go about ～", ja: "～に取りかかる、～に精を出す" },
+  { en: "run across ～", ja: "①～を偶然見つける、～に偶然で会う ②～を走って横切る" },
+  { en: "end up", ja: "最後には～になる" },
+  { en: "use up ～", ja: "～を使い果たす" },
+  { en: "sum up ～", ja: "（～を）要約する、～を合計する" },
+  { en: "clear up ～", ja: "（天候が）晴れる、（疑念・不明点など）を明らかにする" },
+  { en: "tie up ～", ja: "（人）を拘束する、～を固く縛る、提携する" },
+  { en: "cheer up ～", ja: "元気づく、～を元気づける［応援する］" },
+  { en: "blow up ～", ja: "爆発する、かっとなる、～を爆破する" },
+  { en: "call up ～", ja: "（～に）電話をかける、（記憶・勇気など）を呼び起こす" },
+  { en: "shut up ～", ja: "話をやめる、～を散らせる" },
+  { en: "step up ～", ja: "①近づく、（壇上などに）上がる ②（量・速度など）を増す、（活動など）を促進する" },
+  { en: "cut down/back (on) ～", ja: "～（の量）を減らす、～を切り詰める" },
+  { en: "slow down ～", ja: "（～の）速度を落とす、ペースが落ちる" },
+  { en: "break down ～", ja: "①～を分解する、～を壊す ②故障する、取り乱す、肉体的［精神的］に参る" },
+  { en: "hand down ～", ja: "～を（子孫［後世］に）伝える" },
+  { en: "take down ～", ja: "～を書き留める、（建築など）を取り壊す" },
+  { en: "burn down ～", ja: "～を全焼させる、（建物が）全焼する" },
+  { en: "come out", ja: "現れる、ばれる、出版される" },
+  { en: "run out", ja: "使い果たす、尽きる" },
+  { en: "speak out/up", ja: "はっきり［思い切って］話す" },
+  { en: "drop out", ja: "脱落する、中途退学する" },
+  { en: "sort out ～", ja: "～を整理する、～を処理する" },
+  { en: "wear out ～", ja: "～をすり減らす［疲れ果てさせる］、すり減らす" },
+  { en: "roll out ～", ja: "（新製品）を製造［発売］する、～を転がして出す、転がり出る" },
+  { en: "iron out ～", ja: "（問題など）を解決［調節する］" },
+  { en: "set off ～", ja: "出発する、～を引き起こす" },
+  { en: "show off ～", ja: "（～を）見せびらかす" },
+  { en: "keep off ～", ja: "～を近づけない、～に近づかない、～を慎む" },
+  { en: "give off ～", ja: "（光・音・においなど）を発する" },
+  { en: "break off ～", ja: "（～を）急にやめる、～を切り離す" },
+  { en: "take over ～", ja: "（～を）引き継ぐ、～を支配する" },
+  { en: "put in ～", ja: "①（物・言葉など）を差し入れる［加える］、（設備など）を取り付ける ②（労力・時間・金など）を注ぎ込む［投入する］" },
+  { en: "drop in", ja: "（口調で）ちょっと立ち寄る" },
+  { en: "cut in", ja: "（人・車が）割り込む" },
+  { en: "pass on ～", ja: "（物・情報など）を次に回す［伝える］" },
+  { en: "give away ～", ja: "（秘密など）を漏らす、～をただでやる、～を配る" },
+  { en: "adjust (A) to B", ja: "（Aを）Bに合わせて調節する" },
+  { en: "compare A with/to B", ja: "AとBを比較する、AをBにたとえる" },
+  { en: "expose A to B", ja: "AをBにさらす" },
+  { en: "leave A (up) to B", ja: "AをBに任せる、AをBに残す" },
+  { en: "attach A to B", ja: "AをBに取りつける［付与する］" },
+  { en: "attribute A to B", ja: "AをBのせい［結果］と考える" },
+  { en: "owe A to B", ja: "A（恩・義務など）をBに負っている、A（金）をBに借りている" },
+  { en: "confine A to B", ja: "AをBに限定する、AをBに閉じ込める" },
+  { en: "liken A to B", ja: "AをBにたとえる" },
+  { en: "keep A from B", ja: "AにBをさせない、AをBから守る" },
+  { en: "discourage A from B", ja: "A（人）にBを思いとどまらせる" },
+  { en: "forbid A from B", ja: "A（人）にBを禁止する" },
+  { en: "prohibit A from B", ja: "A（人）にBを禁止する" },
+  { en: "order A from B", ja: "BにAを注文する" },
+  { en: "substitute A for B", ja: "Bの代わりにAを使う" },
+  { en: "exchange A for B", ja: "AをBと交換する" }
+  { en: "blame A for B", ja: "BのことでAを非難する、BをAのせいにする" },
+  { en: "punish A for B", ja: "BのことでAを罰する" },
+  { en: "forgive A for B", ja: "BのことでAを許す" },
+  { en: "deprive A of B", ja: "AからBを奪う" },
+  { en: "rob A of B", ja: "（暴力・脅迫などで）AからBを奪う" },
+  { en: "cure A of B", ja: "AのBを治す、A（人）のB（悪癖など）を取り除く" },
+  { en: "accuse A of B", ja: "BのことでAを非難［告訴］する" },
+  { en: "suspect A of B", ja: "BについてAを疑う" },
+  { en: "assure A of B", ja: "A（人）にB（物・事）を請け合う［保証する］" },
+  { en: "transform A into/to B", ja: "AをBに変える［変質させる］" },
+  { en: "talk A into B", ja: "A（人）を説得してBをさせる" },
+  { en: "present A with B", ja: "AにBを贈る［与える］" },
+  { en: "diagnose A as B", ja: "AをBと診断する" },
+  { en: "strike A as B", ja: "A（人）にBの印象を与える" },
+  { en: "congratulate A on/for B", ja: "BのことでAを祝う" },
+  { en: "name A after B", ja: "AをBにちなんで名づける" },
+  { en: "make an effort/efforts", ja: "努力する" },
+  { en: "make way", ja: "道をあける" },
+  { en: "live/lead a ～ life", ja: "［～］の生活をする" },
+  { en: "make/earn a/one's living", ja: "生計を立てる" },
+  { en: "take one's place", ja: "①いつもの席に着く、特定の地位を占める ②～に取って代わる" },
+  { en: "take turns", ja: "交代でする" },
+  { en: "take a chance/chances", ja: "思い切ってやってみる、賭ける" },
+  { en: "take shape", ja: "（はっきりした）形をとる" },
+  { en: "take/have a seat", ja: "着席する" },
+  { en: "take a risk/risks", ja: "（あえて）危険を冒す、賭ける" },
+  { en: "shake hands", ja: "握手する" },
+  { en: "change hands", ja: "持ち主が変わる" },
+  { en: "have a say (in ～)", ja: "（～に）発言権［発言力］を持つ" },
+  { en: "have/got one's (own) way", ja: "思い通りにする" },
+  { en: "keep/hold one's temper", ja: "冷静さを保つ" },
+  { en: "take advantage of ～", ja: "～を利用する、～につけ込む" },
+  { en: "take control of ～", ja: "～を制御［管理・支配］する" },
+  { en: "make use of ～", ja: "～を利用する" },
+  { en: "make fun of ～", ja: "～をからかう" },
+  { en: "make friends with ～", ja: "～と親しくなる" },
+  { en: "make much of ～", ja: "～を重要視する、（否定文で）～を理解する" },
+  { en: "have difficulty (in) doing", ja: "～するのが困難である、苦労しながら～する" },
+  { en: "have access to ～", ja: "～を利用できる、～に近づける" },
+  { en: "have an influence/effect on ～", ja: "～に影響を与える" },
+  { en: "have a liking for ～", ja: "～を好む" },
+  { en: "give rise to ～", ja: "～を引き起こす［生む］" },
+  { en: "give birth to ～", ja: "～を産む、～の原因になる" },
+  { en: "find one's way to ～", ja: "～へたどり着く、～まで道を探しながら進む" },
+  { en: "keep an eye on ～", ja: "～に気を付けている、～から目を離さない" },
+  { en: "fall victim to ～", ja: "～の犠牲［餌食］になる" },
+  { en: "catch sight of ～", ja: "～を見つける［見かける］" },
+  { en: "put emphasis/stress on/upon ～", ja: "～を強調［重視］する" },
+  { en: "be related to ～", ja: "～と関係がある、～と婚姻関係がある" },
+  { en: "be similar to ～", ja: "～に似ている" },
+  { en: "be subject to ～", ja: "～を受けやすい、～に服従している" },
+  { en: "be superior to ～", ja: "～より優れている" },
+  { en: "be sensitive to ～", ja: "～に敏感である" },
+  { en: "be accustomed to ～", ja: "～に慣れている" },
+  { en: "be contrary to ～", ja: "～に反している" },
+  { en: "be indifferent to/toward(s) ～", ja: "～に無関心［無頓着］である" },
+  { en: "be preferable to ～", ja: "～より好ましい［優れている］" },
+  { en: "be dedicated to ～", ja: "（仕事・目的など）に打ち込んでいる" },
+  { en: "be peculiar to ～", ja: "～に特有である" },
+  { en: "be prone to ～", ja: "～になりやすい" },
+  { en: "be identical to/with ～", ja: "～と同じ［同一］である" },
+  { en: "be involved in ～", ja: "～に携わっている［関係している］、～に熱中している" },
+  { en: "be absorbed in ～", ja: "～に熱中している" },
+  { en: "be lacking in ～", ja: "～に欠けている" },
+  { en: "be versed in ～", ja: "～に精通［熟達］している" },
+  { en: "be abundant in ～", ja: "～が豊富である" },
+  { en: "be busy with ～", ja: "～で忙しい" },
+  { en: "be popular with/among ～", ja: "～に人気がある" },
+  { en: "be equipped with ～", ja: "～を備えている" },
+  { en: "be content/contented with ～", ja: "～に満足している" },
+  { en: "be confronted with/by ～", ja: "（困難・問題など）に直面している" },
+  { en: "be acquainted with ～", ja: "～に精通している、～と知り合いである" },
+  { en: "be characteristic of ～", ja: "～に特有である、いかにも～らしい" },
+  { en: "be worthy of ～", ja: "～に値する［ふさわしい］" },
+  { en: "be ignorant of ～", ja: "～を知らない" },
+  { en: "be confident of/about ～", ja: "～を確信している" },
+  { en: "be considerate of/to ～", ja: "～に対して思いやりのある" },
+  { en: "be guilty of ～", ja: "～について有罪である、～を犯している" },
+  { en: "be convinced of ～", ja: "～を確信している" },
+  { en: "be tolerant of ～", ja: "～に対して寛大である" },
+  { en: "be wary of ～", ja: "～に用心深い" },
+  { en: "be suitable for/to ～", ja: "～に適している、（目的など）に合っている" },
+  { en: "be grateful (to A) for B", ja: "Bのことで（Aに）感謝している" },
+  { en: "be particular about/over ～", ja: "～についてやかましい［気難しい］" },
+  { en: "come down with ～", ja: "（病気）にかかる" },
+  { en: "come into being/existence", ja: "出現する、生まれ出る" },
+  { en: "come true", ja: "（夢・予言などが）実現する" },
+  { en: "do ～ good", ja: "（人）のためになる［役に立つ］" },
+  { en: "get in touch (with ～)", ja: "（～と）連絡を取る" },
+  { en: "go blind", ja: "失明する" },
+  { en: "have A in common (with B)", ja: "（Bと）共通にAを持っている" },
+  { en: "keep/bear ～ in mind", ja: "～を心に留めておく［忘れない］" },
+  { en: "look back on/upon/to ～", ja: "～を回顧［回想］する" },
+  { en: "make it", ja: "成功する、うまくやる、間に合う、出席する" },
+  { en: "put into practice/operation", ja: "～を実行［実施］する" },
+  { en: "sign up for ～", ja: "（受講など）の届け出をする、～に加わる" },
+  { en: "take ～ by surprise", ja: "～を驚かす、～の不意を打つ" },
+  { en: "in terms of ～", ja: "～の観点から、～に換算して" },
+  { en: "in contrast to/with ～", ja: "～と著しく違って、～と対照をなして" },
+  { en: "in danger of ～", ja: "～の危険があって" }
+  { en: "in need of ～", ja: "～を必要として" },
+  { en: "in response to ～", ja: "～に応じて［答えて］" },
+  { en: "in favor of ～", ja: "～に賛成して、～のほうを選んで" },
+  { en: "in (the) face of ～", ja: "～に直面して、～にもかかわらず" },
+  { en: "in charge of ～", ja: "～を預かって［管理して］" },
+  { en: "in relation to ～", ja: "～と比べて、～に関連して" },
+  { en: "in place of ～", ja: "～の代わりに" },
+  { en: "in the presence of ～", ja: "～のいるところ［面前］で" },
+  { en: "in honor of ～", ja: "～に敬意を表して、～のために" },
+  { en: "in (the) light of ～", ja: "～から見て、～を考慮して" },
+  { en: "in harmony with ～", ja: "～と調和［一致］して" },
+  { en: "in exchange for ～", ja: "～と交換に" },
+  { en: "for the sake of ～", ja: "～のために" },
+  { en: "for fear of ～", ja: "～を恐れて" },
+  { en: "for lack/want of ～", ja: "～がない［不足している］ために" },
+  { en: "at the expense of ～", ja: "～を犠牲にして" },
+  { en: "at (the) sight of ～", ja: "～を見て" },
+  { en: "at the mercy of ～", ja: "～のなすがままになって" },
+  { en: "as opposed to ～", ja: "～ではなく、～とは対照的に" },
+  { en: "by means of ～", ja: "～を用いて、～によって" },
+  { en: "by/in virtue of ～", ja: "～のおかげで、～によって" },
+  { en: "on/in behalf of ～", ja: "～を代表して、～のために" },
+  { en: "on a/the charge of ～", ja: "～の容疑［罪］で" },
+  { en: "with/in regard to ～", ja: "～に関して（は）" },
+  { en: "in part", ja: "一部には、幾分（かは）" },
+  { en: "in turn", ja: "徐々に、（立ち代わって）次に（は）" },
+  { en: "in place", ja: "あるべき場所に、きちんと整って、用意ができて" },
+  { en: "in practice", ja: "実際には" },
+  { en: "in demand", ja: "需要があって、必要とされて" },
+  { en: "in the meantime/meanwhile", ja: "その間（に）、一方で、話は変わって" },
+  { en: "in all likelihood", ja: "十中八九、おおかた" },
+  { en: "at work", ja: "①職業で、仕事中で ②作用して、運転［作動］中で" },
+  { en: "at risk", ja: "危険な状態で" },
+  { en: "at a loss", ja: "途方に暮れて、困って、損をして" },
+  { en: "at first sight", ja: "一見したところでは、ひと目で" },
+  { en: "at heart", ja: "心の底では、本当は" },
+  { en: "at intervals", ja: "時折、あちこちに" },
+  { en: "on the/an average", ja: "平均して" },
+  { en: "on a ～ basis", ja: "～の基準［原則］で" },
+  { en: "on a ～ scale", ja: "～な規模で" },
+  { en: "on display", ja: "陳列中で、展示して" },
+  { en: "on the increase", ja: "増加中で" },
+  { en: "on (one's) guard", ja: "警戒して" },
+  { en: "to ～ extent/degree", ja: "～の程度に" },
+  { en: "to one's surprise", ja: "～が驚いたことには" },
+  { en: "to the point", ja: "要を得た、適切な" },
+  { en: "to make matters/things worse", ja: "さらに悪いことに" },
+  { en: "to one's advantage", ja: "（人）に都合がよい、（人）に有利な" },
+  { en: "from ～ on/onward(s)", ja: "～から以後は" },
+  { en: "from ～ point of view", ja: "～の視点から（は）" },
+  { en: "for sure/certain", ja: "確かに" },
+  { en: "under way", ja: "（計画などが）進行中で" },
+  { en: "under construction", ja: "建築［工事］中で" },
+  { en: "of late", ja: "最近、近ごろ" },
+  { en: "of one's own accord/free will", ja: "自分の意志で、自発的に" },
+  { en: "without fail", ja: "必ず、間違いなく" },
+  { en: "behind the times", ja: "時代遅れの" },
+  { en: "beyond description", ja: "言葉では表現できないほどの" },
+  { en: "out of breath", ja: "息切れして" },
+  { en: "out of character", ja: "性格に合わない、役に不向きな" },
+  { en: "no matter how/what/when, etc …", ja: "どんなに［何が・いつなど］…でも" },
+  { en: "what we call ～", ja: "いわゆる～" },
+  { en: "what ～ is", ja: "現在の～" },
+  { en: "～ will do", ja: "～は役に立つ［用が足りる］" },
+  { en: "may well do", ja: "おそらく…するだろう、…するのはもっともだ" },
+  { en: "might (just) as well do", ja: "…するのも同じだ、～してもよい" },
+  { en: "cannot ～ too …", ja: "いくら～してもしすぎることはない" },
+  { en: "the last ～ to do", ja: "最も…しそうにない～" },
+  { en: "have A to do with B", ja: "BとAの関係がある" },
+  { en: "to tell (you) the truth", ja: "実を言えば" },
+  { en: "needless to say", ja: "言うまでもなく" },
+  { en: "feel like doing", ja: "…したい気がする" },
+  { en: "be used to doing", ja: "…することに慣れている" },
+  { en: "cannot help doing", ja: "…せずにはいられない" },
+  { en: "come close/near to doing", ja: "もう少しで…しそうになる" },
+  { en: "with a view to doing", ja: "…する目的で" },
+  { en: "joking/kidding aside", ja: "冗談はさておき" },
+  { en: "catch ～ doing", ja: "…しているところを見つける" },
+  { en: "speaking/talking of ～", ja: "～と言えば" },
+  { en: "judging from/by ～", ja: "～から判断すると" },
+  { en: "that is (to say)", ja: "すなわち、つまり" },
+  { en: "in itself", ja: "それ自体では、本来は" },
+  { en: "to oneself", ja: "自分だけに、自分自身に" },
+  { en: "one after another", ja: "次々に" },
+  { en: "none other than ～", ja: "ほかならぬ～、まさに～" },
+  { en: "would/had rather do (than ～)", ja: "むしろ…したい" },
+  { en: "as many/much as ～", ja: "～もの数［量］の" },
+  { en: "as good as ～", ja: "～も同然、ほとんど～" },
+  { en: "as ～ as any", ja: "誰にも劣らず～" },
+  { en: "all the + 比較級", ja: "ますます～" },
+  { en: "that much + 比較級", ja: "それだけいっそう～" },
+  { en: "much/still less ～", ja: "まして～はない" },
+  { en: "what is more", ja: "さらに、おまけに" },
+  { en: "know better (than to do)", ja: "分別がある" },
+  { en: "Couldn't be better.", ja: "最高です" },
+  { en: "worse still/yet", ja: "いっそう悪いことに" },
+  { en: "to the best of one's knowledge", ja: "知る限りでは" },
+  { en: "not ～ (in) the least", ja: "まったく～ない" },
+  { en: "to the full/fullest", ja: "心ゆくまで、十分に" },
+  { en: "by far", ja: "はるかに、ずっと" }
+  { en: "provided (that) …", ja: "もし…ならば" },
+  { en: "every/each time …", ja: "…するたびに" },
+  { en: "the moment/minute …", ja: "…するとすぐに" },
+  { en: "when it comes to ～", ja: "～のこととなると" },
+  { en: "as it is", ja: "①実際のところは ②あるがままの（に）" },
+  { en: "as/so far as ～ be concerned", ja: "～に関する限り" },
+  { en: "as follows", ja: "次のとおり" },
+  { en: "as is often the case (with ～)", ja: "（～に関して）よくあることだが" },
+  { en: "as ～ go", ja: "一般の～と比べると、～としては" },
+  { en: "if only …", ja: "①…でありさえすれば ②…であればなあ" },
+  { en: "if it were not for ～", ja: "もし～がなければ" },
+  { en: "(in) the way …", ja: "…のように、…のやり方で" },
+  { en: "～ to death", ja: "死ぬまで～、ひどく～" },
+  { en: "with ease", ja: "容易に" },
+  { en: "believe it or not", ja: "まさかと思うような話だが" },
+  { en: "not all that ～", ja: "それほど～ではない" },
+  { en: "the 比較級 ～, the 比較級 …", ja: "～であればあるほど、いっそう…だ" },
+  { en: "(Just) As ～, so …", ja: "ちょうど～であるように…だ" },
+  { en: "(It is) No wonder (that) …", ja: "…なのは当然だ" },
+  { en: "It happens that …", ja: "たまたま…だ" },
+  { en: "(The) Chances are (that) …", ja: "ひょっとしたら…だろう" },
+  { en: "There is no doing", ja: "…することはできない" },
+  { en: "not so much A as B", ja: "AというよりむしろB" },
+  { en: "hardly ～ when/before …", ja: "～するかしないかのうちに…" },
+  { en: "never do without ～", ja: "…すれば必ず～する" },
+  { en: "It goes without saying that …", ja: "…なのは言うまでもない" },
+  { en: "(It is) True ～, but …", ja: "確かに～だが、…だ" },
+  { en: "It is not long before …", ja: "間もなく…する" },
+  { en: "It is (high) time (that) …", ja: "（とっくに）…してよいころだ" },
+  { en: "no sooner ～ than …", ja: "～するやいなや…" },
+  { en: "It is no use doing", ja: "…しても無駄である" },
+  { en: "It is not until ～ that …", ja: "～になって初めて…する" },
+  { en: "A is to B what C is to D", ja: "AのBへの関係はCのDへの関係だ" },
+  { en: "not so much as do", ja: "…さえしない" },
+  { en: "Nothing is more A than B.", ja: "BほどAなものはない" },
+  { en: "the former A, the latter B", ja: "前者はA、後者はB" },
+  { en: "A is one thing, and B is another", ja: "AとBとは別物である" },
+  { en: "All one has to do is (to) do", ja: "ただ…すればよい" },
+  { en: "Suffice (it) to say that …", ja: "…と言えば十分である" },
+  { en: "be to do", ja: "①予定 ②義務 ③意図 ④可能" },
+  { en: "be forced to do", ja: "やむなく…する" },
+  { en: "be supposed to do", ja: "…することになっている" },
+  { en: "be to blame (for ～)", ja: "（～について）責任がある" },
+  { en: "be entitled to ～", ja: "～の資格がある" },
+  { en: "tend to do", ja: "…する傾向がある" },
+  { en: "happen to do", ja: "偶然…する" },
+  { en: "manage to do", ja: "なんとか…する" },
+  { en: "can afford to do", ja: "…する余裕がある" },
+  { en: "bother to do", ja: "わざわざ…する" },
+  { en: "come to an end/a close", ja: "終わる" },
+  { en: "go so far as to do", ja: "…しさえする" },
+  { en: "have no choice but to do", ja: "…するほかない" },
+  { en: "spend ～ (in) doing", ja: "…して（時間）を過ごす" },
+  { en: "make a point of doing", ja: "必ず…するようにする" },
+  { en: "remain to be seen", ja: "未定である" },
+  { en: "bring oneself to do", ja: "…する気になる" },
+  { en: "take the trouble to do", ja: "わざわざ…する" },
+  { en: "leave nothing to be desired", ja: "申し分ない" },
+  { en: "in order/so as to do", ja: "…するために" },
+  { en: "in that …", ja: "…の点で、…だから" },
+  { en: "as/so long as …", ja: "…である限り" },
+  { en: "see (to it) that …", ja: "…するよう取り計らう" },
+  { en: "so that ～ can do", ja: "～が…できるように" },
+  { en: "by the time …", ja: "…までに" },
+  { en: "～, so (that) …", ja: "～だ、その結果…" },
+  { en: "now that …", ja: "…である以上" },
+  { en: "in case …", ja: "①もし…なら ②…に備えて" },
+  { en: "given (that) …", ja: "…を考慮すると" },
+  { en: "even as …", ja: "まさに…するときに" },
+  { en: "if any", ja: "もしあるとしても" },
+  { en: "on (the) condition (that) …", ja: "…という条件で" },
+  { en: "lest ～ (should) …", ja: "…しないように" },
+  { en: "what with A and B", ja: "AやらBやらで" },
+  { en: "A, and B at that", ja: "Aだ、その上Bでもある" },
+  { en: "inasmuch/in as much as …", ja: "…だから" },
+  { en: "just about", ja: "ほぼ、かろうじて" },
+  { en: "go ahead", ja: "先に行く、進む" },
+  { en: "check out ～", ja: "①調べる ②借り出す" },
+  { en: "hold on", ja: "①耐える ②待つ" },
+  { en: "hang up ～", ja: "（電話を）切る、掛ける" },
+  { en: "give ～ a try", ja: "～を試してみる" },
+  { en: "give ～ a hand", ja: "～に手を貸す" },
+  { en: "call back ～", ja: "～に折り返し電話する" },
+  { en: "from scratch", ja: "最初から" },
+  { en: "see ～ off", ja: "～を見送る" },
+  { en: "hold one's breath", ja: "息を止める" },
+  { en: "at/behind the wheel", ja: "運転して" },
+  { en: "having said that", ja: "そうは言ったものの" },
+  { en: "on the dot", ja: "きっかりに" },
+  { en: "ask ～ a favor", ja: "～に頼みごとをする" },
+  { en: "drive at ～", ja: "～のつもりである" },
+  { en: "lose (one's) face", ja: "面目を失う" },
+  { en: "before one knows it", ja: "あっという間に" },
+  { en: "stick around/about", ja: "その場にとどまる" },
+  { en: "call it a day", ja: "その日の仕事を終える" },
+  { en: "have a good command of ～", ja: "～を自由に使いこなす" },
+  { en: "keep one's fingers crossed", ja: "幸運を祈る" },
+  { en: "pay a visit (to ～)", ja: "～を訪問する" },
+  { en: "serve ～ right", ja: "～に当然の報いだ" },
+  { en: "go to the polls", ja: "投票に行く" }
+  { en: "take office", ja: "（公職に）就任する" },
+  { en: "turn a blind eye to ～", ja: "～を見て見ぬふりをする" },
+  { en: "last but not least", ja: "最後になったが（重要な点として）" },
+  { en: "know ～ by sight", ja: "～の顔を（見て）知っている" },
+  { en: "pull ～'s leg", ja: "（口語で）～をからかう" },
+  { en: "the bottom line", ja: "要点、最終結果" },
+  { en: "have/take a look (at ～)", ja: "（～を）見る" },
+  { en: "What ～ like?", ja: "～はどんなものか" },
+  { en: "What ～ for?", ja: "どうして～か、何の目的で～か" },
+  { en: "have no idea", ja: "見当がつかない" },
+  { en: "could use ～", ja: "～があればありがたい、～が欲しい" },
+  { en: "How come SV?", ja: "どうして…か" },
+  { en: "take one's time", ja: "時間をかけてゆっくりやる" },
+  { en: "take it easy", ja: "のんびり構える" },
+  { en: "My pleasure.", ja: "どういたしまして" },
+  { en: "make oneself understood", ja: "自分の言うことを分からせる" },
+  { en: "see much of ～", ja: "～によく会う" },
+  { en: "think again", ja: "考え直す" },
+  { en: "help oneself to ～", ja: "～を自由に取る" },
+  { en: "I'm afraid not.", ja: "残念ながらそうではありません" },
+  { en: "treat A to B", ja: "AにBをおごる" },
+  { en: "be fed up with ～", ja: "～にうんざりしている" },
+  { en: "come to think of it", ja: "考えてみると、そういえば" },
+  { en: "think much/highly of ～", ja: "～を高く評価する" },
+  { en: "Legend has it (that) …", ja: "伝説によると…ということだ" },
+  { en: "Here we are.", ja: "さあ着いた" },
+  { en: "hit it off (with ～)", ja: "（人と）意気投合する" },
+  { en: "watch one's step", ja: "足元［言動］に注意する" },
+  { en: "give one's regard to ～", ja: "～によろしくと伝える" },
+  { en: "You're kidding (me).", ja: "冗談でしょう" },
+  { en: "be susceptible to ～", ja: "～の影響を受けやすい" },
+  { en: "be at odds (with ～)", ja: "（～と）対立している" },
+  { en: "be committed to ～", ja: "～に献身している" },
+  { en: "be here to stay", ja: "定着している" },
+  { en: "be liable to do/to ～", ja: "…しがちである、～にかかりやすい" },
+  { en: "be intent on/upon ～", ja: "～に熱心である" },
+  { en: "be no match for ～", ja: "～には到底かなわない" },
+  { en: "be vulnerable to ～", ja: "～に弱い" },
+  { en: "be eligible for ～", ja: "～の資格がある" },
+  { en: "be worth doing", ja: "…する価値がある" },
+  { en: "be out to do", ja: "…しようと狙っている" },
+  { en: "be all ears", ja: "一心に聞いている" },
+  { en: "be beside oneself (with ～)", ja: "（～で）我を忘れる" },
+  { en: "be cut out to be ～", ja: "～に向いている" },
+  { en: "be (all) the rage", ja: "大流行している" },
+  { en: "account for ～", ja: "①説明する ②占める" },
+  { en: "allow for ～", ja: "～を考慮に入れる" },
+  { en: "settle for ～", ja: "～で我慢する" },
+  { en: "yearn for ～", ja: "～を切望する" },
+  { en: "count for ～", ja: "～の価値を持つ" },
+  { en: "cope with ～", ja: "～に対処する" },
+  { en: "coincide with ～", ja: "～と一致する" },
+  { en: "comply with ～", ja: "～に従う" },
+  { en: "dispense with ～", ja: "～なしですます" },
+  { en: "attend to ～", ja: "～を処理する、世話をする" },
+  { en: "aspire to ～", ja: "～を熱望する" },
+  { en: "submit to ～", ja: "～に屈する" },
+  { en: "consent to ～", ja: "～に同意する" },
+  { en: "deal in ～", ja: "～を取り扱う" },
+  { en: "persist in ～", ja: "～に固執する" },
+  { en: "indulge in ～", ja: "～にふける" },
+  { en: "embark on/upon ～", ja: "～を始める" },
+  { en: "dwell on/upon ～", ja: "～をくよくよ考える" },
+  { en: "tell on/upon ～", ja: "～に悪影響を与える" },
+  { en: "refrain from ～", ja: "～を慎む" },
+  { en: "discriminate against ～", ja: "～を差別する" },
+  { en: "abide by ～", ja: "～を守る" },
+  { en: "work out ～", ja: "①解決する ②運動する" },
+  { en: "rule out ～", ja: "～を排除する" },
+  { en: "single out ～", ja: "～を選び出す" },
+  { en: "pass out", ja: "気絶する" },
+  { en: "miss out on ～", ja: "～を逃す" },
+  { en: "wind up ～", ja: "～を終える" },
+  { en: "pull up ～", ja: "①引き上げる ②止まる" },
+  { en: "throw up ～", ja: "①投げ上げる ②吐く" },
+  { en: "round up ～", ja: "～を寄せ集める" },
+  { en: "catch on", ja: "①流行する ②理解する" },
+  { en: "get away with ～", ja: "（罰を受けずに）～する" },
+  { en: "shy away (from ～)", ja: "～を避ける" },
+  { en: "hang around/about/round", ja: "ぶらつく" },
+  { en: "get down to ～", ja: "～に本気で取りかかる" },
+  { en: "let down ～", ja: "～を失望させる" },
+  { en: "pull off ～", ja: "～をやってのける" },
+  { en: "follow through (on/with ～)", ja: "～をやり遂げる" },
+  { en: "find oneself ～", ja: "気づくと～である" },
+  { en: "make do (with ～)", ja: "～で間に合わせる" },
+  { en: "make good ～", ja: "①成功する ②償う" },
+  { en: "make (both) ends meet", ja: "収入内でやりくりする" },
+  { en: "make believe (that …)", ja: "～のふりをする" },
+  { en: "take ～ for granted", ja: "～を当然と思う" },
+  { en: "take ～ into account", ja: "～を考慮に入れる" },
+  { en: "take hold of ～", ja: "～をつかむ" },
+  { en: "take notice (of ～)", ja: "～に気づく" },
+  { en: "take effect", ja: "①施行される ②効く" },
+  { en: "take pains", ja: "骨を折る" },
+  { en: "keep track of ～", ja: "～を把握する" },
+  { en: "keep ～ company", ja: "（人）の相手をする" },
+  { en: "keep abreast of/with ～", ja: "～に遅れずについていく" },
+  { en: "let go of ～", ja: "～を手放す" },
+  { en: "live up to ～", ja: "～に恥じない行動をする" }
+  { en: "look ～ in the eye(s)", ja: "～の目を正視する" },
+  { en: "hold true", ja: "当てはまる、有効である" },
+  { en: "come to terms with ～", ja: "～と折り合いがつく、（あきらめて）～を受け入れる" },
+  { en: "come to light", ja: "明るみに出る、現れる" },
+  { en: "come of age", ja: "（法律的に）成人になる" },
+  { en: "come in handy", ja: "役に立つ" },
+  { en: "fall short of ～", ja: "（目標・基準など）に達しない" },
+  { en: "go a long way to do", ja: "…するのに大いに役立つ" },
+  { en: "pave the way for/to ～", ja: "～への準備をする、道を開く" },
+  { en: "put ～ to use", ja: "～を利用する" },
+  { en: "stand to reason", ja: "もっともである、理屈に合う" },
+  { en: "see/do the sights (of ～)", ja: "（～の）観光をする" },
+  { en: "read between the lines", ja: "行間を読む、真意をつかむ" },
+  { en: "follow suit", ja: "人のまねをする、先例になろうとする" },
+  { en: "play a joke on ～", ja: "～に（悪意のない）いたずらをする" },
+  { en: "get on ～'s nerves", ja: "～の神経にさわる" },
+  { en: "get/have the better of ～", ja: "～に勝つ、～を出し抜く" },
+  { en: "get/be even with ～", ja: "（人）に仕返しをする" },
+  { en: "hold/keep ～ in check", ja: "～を抑える、食い止める" },
+  { en: "have an eye for ～", ja: "～に対する眼識がある" },
+  { en: "have ～ on one's mind", ja: "～を気にしている、心配している" },
+  { en: "have yet to do", ja: "まだ…していない、これから…しなければならない" },
+  { en: "dare to do", ja: "思い切って、あえて…する" },
+  { en: "impose A on/upon B", ja: "AをBに課す、押しつける" },
+  { en: "ascribe A to B", ja: "AをBのせいにする" },
+  { en: "bring A home to B", ja: "AをBに痛感させる" },
+  { en: "a variety of ～", ja: "さまざまな～、～の一種" },
+  { en: "a handful of ～", ja: "一握りの～、少数の～" },
+  { en: "a host of ～", ja: "多数の～" },
+  { en: "scores of ～", ja: "多数の～" },
+  { en: "many a/an ～", ja: "多くの～" },
+  { en: "quite a few ～", ja: "かなりの数の～" },
+  { en: "all manner of ～", ja: "あらゆる種類の～" },
+  { en: "(all) on one's own", ja: "自分一人で、独力で" },
+  { en: "at issue", ja: "問題となって、論争中で" },
+  { en: "at ～'s disposal", ja: "（人）の自由に使えて" },
+  { en: "at stake", ja: "危機にさらされて、賭けられて" },
+  { en: "(enough) ～ to go around", ja: "全員に行き渡るだけの～" },
+  { en: "every other ～", ja: "一つおきの～、残りすべての～" },
+  { en: "for a rainy day", ja: "万一のために、非常時に備えて" },
+  { en: "in earnest", ja: "本気で、熱心に" },
+  { en: "in (good) shape", ja: "調子が良くて" },
+  { en: "in store (for ～)", ja: "（～に）待ち受けている、用意されて" },
+  { en: "in the works", ja: "準備中で、進行中で" },
+  { en: "nothing short of ～", ja: "まさしく～" },
+  { en: "～ of one's own", ja: "自分自身の～" },
+  { en: "of one's (own) doing", ja: "自分がしたこと" },
+  { en: "on the move", ja: "移動中で、活躍中で" },
+  { en: "on the ～ side", ja: "～気味で" },
+  { en: "out of hand", ja: "①手に負えない ②即座に" },
+  { en: "out of the question", ja: "あり得ない、不可能で" },
+  { en: "per capita", ja: "一人当たりの" },
+  { en: "right as rain", ja: "すっかり健康で、正常で" },
+  { en: "second to none", ja: "誰にも劣らない" },
+  { en: "something of a ～", ja: "ちょっとした～、ある程度の～" },
+  { en: "upward(s) of ～", ja: "～以上の" },
+  { en: "regardless of ～", ja: "～に関係なく" },
+  { en: "in accordance with ～", ja: "～に従って" },
+  { en: "in proportion to ～", ja: "～に比例して" },
+  { en: "in the wake of ～", ja: "～の後で、～の結果として" },
+  { en: "as of ～", ja: "～現在で" },
+  { en: "but for ～", ja: "～がなければ" },
+  { en: "on ～ terms with …", ja: "…と～の関係で" },
+  { en: "on the verge of ～", ja: "～の瀬戸際で" },
+  { en: "within walking distance of ～", ja: "～から徒歩圏内に" },
+  { en: "to the effect that …", ja: "…という趣旨で" },
+  { en: "a case in point", ja: "適例" },
+  { en: "the pros and cons", ja: "賛否両論" },
+  { en: "a white elephant", ja: "無用の長物" },
+  { en: "the elephant in the room", ja: "誰も触れたがらない問題" },
+  { en: "part and parcel (of ～)", ja: "不可分の一部" },
+  { en: "all along", ja: "最初からずっと" },
+  { en: "all too", ja: "とても、非常に" },
+  { en: "as such", ja: "そういうものとして" },
+  { en: "(at) first hand", ja: "直接に" },
+  { en: "at ～'s convenience", ja: "～の都合のよい時に" },
+  { en: "at/on short notice", ja: "急に、即座に" },
+  { en: "at will", ja: "自由に" },
+  { en: "by and large", ja: "概して" },
+  { en: "down the road", ja: "将来は、やがて" },
+  { en: "early on", ja: "早い時期に" },
+  { en: "for a change", ja: "気分転換に" },
+  { en: "for all I know", ja: "私の知る限りでは" },
+  { en: "for nothing", ja: "①無料で ②無駄に" },
+  { en: "if anything", ja: "どちらかと言えば" },
+  { en: "in a row", ja: "連続して" },
+  { en: "in person", ja: "直接、自ら" },
+  { en: "in retrospect", ja: "振り返ってみると" },
+  { en: "more often than not", ja: "たいていは" },
+  { en: "on second thought", ja: "考え直してみて" },
+  { en: "on the face of it", ja: "一見したところでは" },
+  { en: "on the spot", ja: "①その場で ②窮地に立って" },
+  { en: "once (and) for all", ja: "きっぱりと、これを最後に" },
+  { en: "one of these days", ja: "そのうちに" },
+  { en: "once upon a time", ja: "昔々" },
+  { en: "only too", ja: "とても、残念ながら" },
+  { en: "sort/kind of ～", ja: "ちょっと、なんとなく" },
+  { en: "such as it is", ja: "大したものではないが" },
+  { en: "the other way around", ja: "逆に、あべこべに" },
+  { en: "to date", ja: "現在まで" }
+];
+
+/* =========================
+   Utils
+========================= */
+const $ = (id) => document.getElementById(id);
+
+const LS = {
+  get(key, fallback){
+    try{
+      const v = localStorage.getItem(key);
+      return v == null ? fallback : JSON.parse(v);
+    }catch{ return fallback; }
+  },
+  set(key, value){
+    try{ localStorage.setItem(key, JSON.stringify(value)); }catch{}
+  }
+};
+
+const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+/* =========================
+   Voice utility（英語音声選択）
+========================= */
+function pickEnglishVoice(){
+  const voices = speechSynthesis.getVoices() || [];
+  return (
+    voices.find(v => v.lang === "en-US" && /Alex/i.test(v.name)) ||
+    voices.find(v => v.lang === "en-US") ||
+    voices.find(v => v.lang.startsWith("en-"))
+  ) || null;
+}
+
+let cachedEnglishVoice = null;
+
+if ("speechSynthesis" in window) {
+  speechSynthesis.onvoiceschanged = () => {
+    cachedEnglishVoice = pickEnglishVoice();
+  };
+}
+
+const toInt = (v, fallback) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.trunc(n) : fallback;
+};
+const escapeHtml = (s) => String(s ?? "")
+  .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+  .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+
+/* =========================
+   Elements
+========================= */
+const pageTitle = $("pageTitle");
+const progressEl = $("progress");
+const wordTextEl = $("wordText");
+const meaningEl = $("meaning");
+const wordNumHeader = $("wordNumHeader");
+
+const nextBtn = $("nextBtn");
+const resetBtn = $("resetBtn");
+const clearWrongBtn = $("clearWrongBtn");
+
+const wrongOnlyToggle = $("wrongOnlyToggle");
+const wrongCount = $("wrongCount");
+
+const missBox = $("missBox");
+const missToggle = $("missToggle");
+
+const autoBtn = $("autoBtn");
+const audioToggle = $("audioToggle");
+const themeToggle = $("themeToggle");
+const orderToggle = $("orderToggle");
+
+const rangeFrom = $("rangeFrom");
+const rangeTo = $("rangeTo");
+
+const wheelOpenBtn = $("wheelOpenBtn");
+const speakBtn = $("speakBtn");
+
+const rateRange = $("rateRange");
+const rateLabel = $("rateLabel");
+
+const autoEnMsInput = $("autoEnMs");
+const autoJaMsInput = $("autoJaMs");
+const autoTimeResetBtn = $("autoTimeResetBtn");
+
+const wakeBadge = $("wakeBadge");
+const wakeDot = $("wakeDot");
+const wakeText = $("wakeText");
+
+/* wheel */
+const wheelOverlay = $("wheelOverlay");
+const wheelCloseBtn = $("wheelCloseBtn");
+const wheelSearchInput = $("wheelSearchInput");
+const wheelClearSearchBtn = $("wheelClearSearchBtn");
+const wheelList = $("wheelList");
+const wheelViewport = $("wheelViewport");
+const wheelJumpBtn = $("wheelJumpBtn");
+const wheelHint = $("wheelHint");
+
+/* =========================
+   State
+   - APPごとのlocalStorage衝突を避けるため title をキー化
+========================= */
+const APP_ID  = (document.title || "vocab").replace(/\s+/g, "_");
+const APP_KEY = `ei_idiom_state_v3__${APP_ID}`;
+
+const state = {
+  idx: 0,
+  orderRandom: false,
+  audioOn: true,
+  dark: false,
+
+  wrongSet: {},      // { realIndex: true }
+  wrongOnly: false,
+
+  rangeFrom: 1,
+  rangeTo: VOCAB.length,
+
+  shuffled: [],      // 実index配列（範囲＆復習で作る）
+  started: false,
+  phase: 0,          // 0:英/出題, 1:日/答え
+
+  rate: 1.0,
+
+  autoOn: false,
+  autoEnMs: 1500,
+  autoJaMs: 1000,
+
+  vocabLen: VOCAB.length
+};
+
+function loadState(){
+  const saved = LS.get(APP_KEY, null);
+  if(!saved) return;
+
+  const b = (k, t) => (typeof saved[k] === t);
+  if(b("idx","number")) state.idx = saved.idx;
+  if(b("orderRandom","boolean")) state.orderRandom = saved.orderRandom;
+  if(b("audioOn","boolean")) state.audioOn = saved.audioOn;
+  if(b("dark","boolean")) state.dark = saved.dark;
+  if(saved.wrongSet && typeof saved.wrongSet === "object") state.wrongSet = saved.wrongSet;
+  if(b("wrongOnly","boolean")) state.wrongOnly = saved.wrongOnly;
+
+  if(b("rangeFrom","number")) state.rangeFrom = saved.rangeFrom;
+  if(b("rangeTo","number")) state.rangeTo = saved.rangeTo;
+
+  if(Array.isArray(saved.shuffled)) state.shuffled = saved.shuffled;
+
+  if(b("started","boolean")) state.started = saved.started;
+  if(b("phase","number")) state.phase = saved.phase;
+
+  if(b("rate","number")) state.rate = saved.rate;
+
+  if(b("autoOn","boolean")) state.autoOn = saved.autoOn;
+  if(b("autoEnMs","number")) state.autoEnMs = saved.autoEnMs;
+  if(b("autoJaMs","number")) state.autoJaMs = saved.autoJaMs;
+
+  /* 語数が違うアプリ/更新なら安全に初期化 */
+  if(typeof saved.vocabLen === "number" && saved.vocabLen !== VOCAB.length){
+    state.idx = 0;
+    state.started = false;
+    state.phase = 0;
+    state.wrongSet = {};
+    state.wrongOnly = false;
+    state.rangeFrom = 1;
+    state.rangeTo = VOCAB.length;
+    state.shuffled = [];
+  }
+
+  state.vocabLen = VOCAB.length;
+}
+
+function saveState(){
+  LS.set(APP_KEY, state);
+}
+
+/* =========================
+   Order / Range
+========================= */
+function inRangeIndices(){
+  const a = clamp(toInt(state.rangeFrom, 1), 1, VOCAB.length);
+  const b = clamp(toInt(state.rangeTo, VOCAB.length), 1, VOCAB.length);
+  const lo = Math.min(a, b);
+  const hi = Math.max(a, b);
+  const arr = [];
+  for(let i = lo - 1; i <= hi - 1; i++) arr.push(i);
+  return arr;
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildOrder(){
+  const base = inRangeIndices();
+  const pool = state.wrongOnly ? base.filter(i => state.wrongSet[i]) : base;
+
+  if(pool.length === 0){
+    state.shuffled = [];
+    state.idx = 0;
+    return;
+  }
+  state.shuffled = state.orderRandom ? shuffle(pool) : pool;
+  state.idx = 0;
+}
+
+function currentRealIndex(){
+  if(state.shuffled.length === 0) return null;
+  return state.shuffled[clamp(state.idx, 0, state.shuffled.length - 1)];
+}
+
+function syncRangeConstraints(){
+  rangeFrom.max = String(state.rangeTo);
+  rangeTo.min   = String(state.rangeFrom);
+
+  rangeFrom.value = String(state.rangeFrom);
+  rangeTo.value   = String(state.rangeTo);
+}
+
+/* =========================
+   Speech
+========================= */
+function speak(text){
+  if(!state.audioOn) return;
+  if(!("speechSynthesis" in window)) return;
+
+  try{ speechSynthesis.cancel(); }catch(e){}
+
+  // ★ iPad対策：まだ取れてなければ毎回拾い直す
+  if(!cachedEnglishVoice){
+    cachedEnglishVoice = pickEnglishVoice();
+  }
+
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US";
+  u.rate = clamp(Number(state.rate) || 1.0, 0.6, 1.4);
+
+  if (cachedEnglishVoice) u.voice = cachedEnglishVoice;
+
+  speechSynthesis.speak(u);
+}
+
+
+
+function speakCurrent(){
+  const real = currentRealIndex();
+  if(real == null) return;
+  speak(VOCAB[real].en);
+}
+
+/* =========================
+   Wake Lock
+========================= */
+let wakeLockSentinel = null;
+let wakeKeepAliveTimer = 0;
+
+function setWakeUI(on, reason){
+  wakeBadge.classList.toggle("show", !!state.autoOn);
+  wakeDot.classList.toggle("on", !!on);
+  wakeDot.classList.toggle("off", !on);
+  wakeText.textContent = on ? "Wake: ON" : "Wake: OFF";
+  if(reason && state.autoOn) wakeBadge.title = reason;
+}
+
+async function requestWakeLock(){
+  setWakeUI(false, "WakeLockを取得中…");
+  try{
+    if("wakeLock" in navigator && navigator.wakeLock?.request){
+      wakeLockSentinel = await navigator.wakeLock.request("screen");
+      setWakeUI(true, "WakeLock: Screen Wake Lock APIで維持中");
+
+      wakeLockSentinel.addEventListener("release", () => {
+        wakeLockSentinel = null;
+        if(state.autoOn && document.visibilityState === "visible"){
+          requestWakeLock().catch(()=>{});
+        }else{
+          setWakeUI(false, "WakeLock: OFF");
+        }
+      });
+      return;
+    }
+  }catch{}
+
+  /* iPhone Safari等のフォールバック（擬似 keep-alive） */
+  clearInterval(wakeKeepAliveTimer);
+  wakeKeepAliveTimer = setInterval(() => { void Date.now(); }, 25_000);
+  setWakeUI(false, "このブラウザはWakeLock非対応の可能性があります（iPhone Safari等）。Auto中は時々画面をタップすると維持しやすいです。");
+}
+
+async function releaseWakeLock(){
+  try{ if(wakeLockSentinel) await wakeLockSentinel.release(); }catch{}
+  wakeLockSentinel = null;
+
+  if(wakeKeepAliveTimer){
+    clearInterval(wakeKeepAliveTimer);
+    wakeKeepAliveTimer = 0;
+  }
+  setWakeUI(false, "WakeLock: OFF");
+}
+
+document.addEventListener("visibilitychange", () => {
+  if(!state.autoOn) return;
+  if(document.visibilityState === "visible"){
+    requestWakeLock().catch(()=>{});
+  }
+});
+
+/* =========================
+   Render / UI
+========================= */
+function updateAutoBtn(){
+  autoBtn.textContent = state.autoOn ? "⏸ Auto" : "▶︎ Auto";
+}
+
+function updateTopUI(){
+  const total = state.shuffled.length;
+  const cur = (!state.started || !total) ? 0 : (state.idx + 1);
+  progressEl.textContent = `${cur} / ${total}`;
+
+  const real = currentRealIndex();
+  wordNumHeader.textContent = (!state.started || real == null) ? "" : String(real + 1);
+
+  wrongOnlyToggle.checked = !!state.wrongOnly;
+  orderToggle.textContent = state.orderRandom ? "🔀" : "🔢";
+  audioToggle.textContent = state.audioOn ? "🔊" : "🔇";
+  themeToggle.textContent = state.dark ? "🌙" : "☀️";
+
+  /* 復習カウント：範囲内の復習数 */
+  const base = inRangeIndices();
+  const cnt = base.filter(i => state.wrongSet[i]).length;
+  wrongCount.textContent = `(${cnt})`;
+
+  rateRange.value = String(state.rate);
+  rateLabel.textContent = `${state.rate.toFixed(1)}x`;
+
+  autoEnMsInput.value = String(state.autoEnMs);
+  autoJaMsInput.value = String(state.autoJaMs);
+
+  syncRangeConstraints();
+  updateAutoBtn();
+}
+
+function render(){
+  pageTitle.textContent = document.title;
+
+  const real = currentRealIndex();
+  updateTopUI();
+
+  if(real != null){
+    missToggle.checked = !!state.wrongSet[real];
+  }
+
+  if(real == null){
+    wordTextEl.textContent = "リストが空です";
+    meaningEl.textContent = "範囲を広げるか、「復習」をOFFにするか、復習リストを登録してね";
+    nextBtn.textContent = "はじめる";
+    state.started = false;
+    state.phase = 0;
+    missBox.classList.remove("show");
+    missToggle.checked = false;
+    saveState();
+    return;
+  }
+
+  if(!state.started){
+    wordTextEl.textContent = "Ready Steady GO!";
+    meaningEl.textContent = "";
+    nextBtn.textContent = "はじめる";
+    missBox.classList.remove("show");
+    missToggle.checked = false;
+    saveState();
+    return;
+  }
+
+  const item = VOCAB[real];
+  wordTextEl.textContent = item.en;
+
+if(state.phase === 0){
+  meaningEl.textContent = "";
+  nextBtn.textContent = "日本語訳を確認（答え合わせ）";
+}else{
+  meaningEl.textContent = item.ja;
+  nextBtn.textContent = "正解だったかな？ 次の単語へ！";
+}
+
+/* ★ 常時表示 */
+missBox.classList.add("show");
+
+/* ★ チェック状態は常に現在の単語に同期 */
+missToggle.checked = !!state.wrongSet[real];
+
+
+  saveState();
+}
+
+/* =========================
+   Manual controls
+========================= */
+let autoTimer = 0;
+
+function stopAuto(){
+  state.autoOn = false;
+  if(autoTimer) clearTimeout(autoTimer);
+  autoTimer = 0;
+  updateAutoBtn();
+  saveState();
+  releaseWakeLock().catch(()=>{});
+}
+
+function startOrAdvance(){
+  stopAuto();
+
+  const real = currentRealIndex();
+  if(real == null){ render(); return; }
+
+  if(!state.started){
+    state.started = true;
+    state.phase = 0;
+    render();
+    speakCurrent();
+    return;
+  }
+
+  if(state.phase === 0){
+    state.phase = 1;
+    render();
+    return;
+  }
+
+  state.idx = (state.idx >= state.shuffled.length - 1) ? 0 : state.idx + 1;
+  state.phase = 0;
+  render();
+  speakCurrent();
+}
+
+function hardReset(){
+  stopAuto();
+  state.idx = 0;
+  state.started = false;
+  state.phase = 0;
+  buildOrder();
+  render();
+}
+
+function clearWrong(){
+  stopAuto();
+  state.wrongSet = {};
+  state.idx = 0;
+  state.started = false;
+  state.phase = 0;
+  buildOrder();
+  render();
+}
+
+function applyRangeFromInputs(){
+  stopAuto();
+
+  let from = clamp(toInt(rangeFrom.value, 1), 1, VOCAB.length);
+  let to   = clamp(toInt(rangeTo.value, VOCAB.length), 1, VOCAB.length);
+
+  /* ルール：from > to を許さない */
+  if(from > to) from = to;
+
+  state.rangeFrom = from;
+  state.rangeTo   = to;
+
+  buildOrder();
+  state.started = false;
+  state.phase = 0;
+  render();
+}
+
+/* =========================
+   Auto
+========================= */
+function scheduleAuto(ms){
+  if(autoTimer) clearTimeout(autoTimer);
+  autoTimer = setTimeout(autoTick, ms);
+}
+
+function startAuto(){
+  const real = currentRealIndex();
+  if(real == null) return;
+
+  state.autoOn = true;
+  updateAutoBtn();
+  saveState();
+
+  requestWakeLock().catch(()=>{});
+  setWakeUI(!!wakeLockSentinel, wakeBadge.title);
+
+  autoTick();
+}
+
+function autoTick(){
+  if(!state.autoOn) return;
+
+  const real = currentRealIndex();
+  if(real == null){
+    stopAuto();
+    render();
+    return;
+  }
+
+  if(!state.started){
+    state.started = true;
+    state.phase = 0;
+    render();
+    speakCurrent();
+    scheduleAuto(state.autoEnMs);
+    return;
+  }
+
+  if(state.phase === 0){
+    state.phase = 1;
+    render();
+    scheduleAuto(state.autoJaMs);
+    return;
+  }
+
+  state.idx = (state.idx >= state.shuffled.length - 1) ? 0 : state.idx + 1;
+  state.phase = 0;
+  render();
+  speakCurrent();
+  scheduleAuto(state.autoEnMs);
+}
+
+/* Auto時間UI */
+function sanitizeMs(v, min, max, fallback){
+  const n = Number(v);
+  if(!Number.isFinite(n)) return fallback;
+  return clamp(Math.round(n), min, max);
+}
+
+/* =========================
+   Wheel (Search)
+   - 範囲内(＋復習ONなら復習内)だけ候補にする
+========================= */
+let wheelFiltered = [];
+let wheelActiveIndex = 0;
+let wheelSnapTimer = 0;
+
+function wheelCandidateIndices(){
+  const base = inRangeIndices();
+  return state.wrongOnly ? base.filter(i => state.wrongSet[i]) : base;
+}
+function wheelMatch(q, item){
+  if(!q) return true;
+  const s = q.toLowerCase();
+  return (item.en || "").toLowerCase().includes(s) || (item.ja || "").toLowerCase().includes(s);
+}
+
+function updateWheelHint(){
+  const total = wheelFiltered.length;
+  wheelHint.textContent = (total === 0) ? "該当なし" : `${total}件`;
+}
+
+function wheelUpdateActiveClass(){
+  const items = wheelList.querySelectorAll(".wheelItem");
+  items.forEach((li, idx) => li.classList.toggle("isActive", idx === wheelActiveIndex));
+}
+
+function wheelScrollToIndex(i, smooth){
+  const items = wheelList.querySelectorAll(".wheelItem");
+  if(!items.length) return;
+
+  const idx = clamp(i, 0, items.length - 1);
+  const target = items[idx];
+
+  const top = target.offsetTop + (target.offsetHeight / 2) - (wheelViewport.clientHeight / 2);
+  wheelViewport.scrollTo({ top, behavior: smooth ? "smooth" : "auto" });
+
+  wheelActiveIndex = idx;
+  wheelUpdateActiveClass();
+}
+
+function wheelPickNearest(){
+  const items = wheelList.querySelectorAll(".wheelItem");
+  if(!items.length) return 0;
+
+  const centerY = wheelViewport.scrollTop + wheelViewport.clientHeight / 2;
+  let best = 0, bestDist = Infinity;
+
+  items.forEach((el, i) => {
+    const y = el.offsetTop + el.offsetHeight / 2;
+    const d = Math.abs(y - centerY);
+    if(d < bestDist){ bestDist = d; best = i; }
+  });
+  return best;
+}
+
+function wheelSnap(){
+  wheelScrollToIndex(wheelPickNearest(), true);
+}
+
+function renderWheelItems(){
+  wheelList.innerHTML = "";
+  wheelFiltered.forEach((v, idx) => {
+    const li = document.createElement("li");
+    li.className = "wheelItem";
+    li.dataset.index = String(idx);
+    li.innerHTML = `
+      <div class="wheelItemInner">
+        <div class="num">${v.i + 1}</div>
+        <div>
+          <div class="main">${escapeHtml(v.en)}</div>
+          <span class="ja">${escapeHtml(v.ja)}</span>
+        </div>
+      </div>
+    `;
+    wheelList.appendChild(li);
+  });
+
+  wheelActiveIndex = clamp(wheelActiveIndex, 0, Math.max(0, wheelFiltered.length - 1));
+  wheelUpdateActiveClass();
+}
+
+function rebuildWheelList(){
+  const q = (wheelSearchInput.value || "").trim();
+  const candidates = wheelCandidateIndices();
+
+  wheelFiltered = candidates
+    .map(i => ({ ...VOCAB[i], i }))
+    .filter(v => wheelMatch(q, v));
+
+  wheelActiveIndex = 0;
+  renderWheelItems();
+  updateWheelHint();
+  wheelViewport.scrollTop = 0;
+
+  requestAnimationFrame(() => wheelScrollToIndex(0, false));
+}
+
+function openWheel(){
+  stopAuto();
+  wheelOverlay.classList.add("show");
+  wheelOverlay.setAttribute("aria-hidden", "false");
+  wheelSearchInput.value = "";
+  wheelActiveIndex = 0;
+  rebuildWheelList();
+  setTimeout(()=>wheelSearchInput.focus(), 50);
+}
+function closeWheel(){
+  wheelOverlay.classList.remove("show");
+  wheelOverlay.setAttribute("aria-hidden", "true");
+}
+function wheelJumpToSelected(){
+  stopAuto();
+  if(wheelFiltered.length === 0) return;
+
+  const picked = wheelFiltered[wheelActiveIndex];
+  if(!picked) return;
+
+  const pos = state.shuffled.indexOf(picked.i);
+  if(pos < 0){
+    wheelHint.textContent = "この単語は現在の範囲にありません（範囲を広げてください）";
+    return;
+  }
+
+  state.idx = pos;
+  state.started = true;
+  state.phase = 0;
+  render();
+  closeWheel();
+}
+
+/* =========================
+   Events
+========================= */
+nextBtn.addEventListener("click", startOrAdvance);
+resetBtn.addEventListener("click", hardReset);
+clearWrongBtn.addEventListener("click", clearWrong);
+
+autoBtn.addEventListener("click", () => {
+  if(state.autoOn) stopAuto();
+  else startAuto();
+});
+
+wrongOnlyToggle.addEventListener("change", () => {
+  stopAuto();
+  state.wrongOnly = wrongOnlyToggle.checked;
+  buildOrder();
+  state.started = false;
+  state.phase = 0;
+  render();
+});
+
+missToggle.addEventListener("change", () => {
+  const real = currentRealIndex();
+  if(real == null) return;
+
+  if(missToggle.checked) state.wrongSet[real] = true;
+  else delete state.wrongSet[real];
+
+  render(); // count更新も含める
+});
+
+audioToggle.addEventListener("click", () => {
+  stopAuto();
+  state.audioOn = !state.audioOn;
+  if(!state.audioOn){
+    try{ window.speechSynthesis.cancel(); }catch{}
+  }
+  render();
+});
+
+themeToggle.addEventListener("click", () => {
+  stopAuto();
+  state.dark = !state.dark;
+  document.body.classList.toggle("dark", state.dark);
+  render();
+});
+
+orderToggle.addEventListener("click", () => {
+  stopAuto();
+  state.orderRandom = !state.orderRandom;
+  buildOrder();
+  state.started = false;
+  state.phase = 0;
+  render();
+});
+
+/* range */
+rangeFrom.addEventListener("change", applyRangeFromInputs);
+rangeTo.addEventListener("change", applyRangeFromInputs);
+
+/* rate */
+rateRange.addEventListener("input", () => {
+  state.rate = Number(rateRange.value);
+  rateLabel.textContent = `${state.rate.toFixed(1)}x`;
+  saveState();
+});
+
+/* speak */
+speakBtn.addEventListener("click", () => {
+  stopAuto();
+  const real = currentRealIndex();
+  if(real == null) return;
+  speak(VOCAB[real].en);
+});
+
+/* auto time */
+autoEnMsInput.addEventListener("change", () => {
+  stopAuto();
+  state.autoEnMs = sanitizeMs(autoEnMsInput.value, 200, 10000, 1500);
+  autoEnMsInput.value = String(state.autoEnMs);
+  saveState();
+});
+autoJaMsInput.addEventListener("change", () => {
+  stopAuto();
+  state.autoJaMs = sanitizeMs(autoJaMsInput.value, 200, 20000, 1000);
+  autoJaMsInput.value = String(state.autoJaMs);
+  saveState();
+});
+autoTimeResetBtn.addEventListener("click", () => {
+  stopAuto();
+  state.autoEnMs = 1500;
+  state.autoJaMs = 1000;
+  autoEnMsInput.value = String(state.autoEnMs);
+  autoJaMsInput.value = String(state.autoJaMs);
+  saveState();
+});
+
+/* wheel */
+wheelOpenBtn.addEventListener("click", openWheel);
+wheelCloseBtn.addEventListener("click", closeWheel);
+wheelClearSearchBtn.addEventListener("click", () => { wheelSearchInput.value = ""; rebuildWheelList(); });
+wheelSearchInput.addEventListener("input", rebuildWheelList);
+wheelJumpBtn.addEventListener("click", wheelJumpToSelected);
+
+wheelList.addEventListener("click", (e) => {
+  const li = e.target.closest(".wheelItem");
+  if(!li) return;
+  const idx = parseInt(li.dataset.index || "0", 10);
+  if(!Number.isFinite(idx)) return;
+  wheelScrollToIndex(idx, true);
+});
+
+wheelViewport.addEventListener("scroll", () => {
+  clearTimeout(wheelSnapTimer);
+  wheelSnapTimer = setTimeout(() => {
+    if (wheelOverlay.classList.contains("show")) wheelSnap();
+  }, 140);
+}, { passive:true });
+
+wheelOverlay.addEventListener("click", (e) => { if(e.target === wheelOverlay) closeWheel(); });
+document.addEventListener("keydown", (e) => { if(e.key === "Escape" && wheelOverlay.classList.contains("show")) closeWheel(); });
+
+/* =========================
+   Init
+========================= */
+(function init(){
+  rangeFrom.min = "1";
+  rangeTo.min = "1";
+  rangeFrom.max = String(VOCAB.length);
+  rangeTo.max = String(VOCAB.length);
+
+  loadState();
+
+  /* clamp */
+  state.rangeFrom = clamp(toInt(state.rangeFrom, 1), 1, VOCAB.length);
+  state.rangeTo   = clamp(toInt(state.rangeTo, VOCAB.length), 1, VOCAB.length);
+  if(state.rangeFrom > state.rangeTo) state.rangeFrom = state.rangeTo;
+
+  state.rate = clamp(Number(state.rate) || 1.0, 0.6, 1.4);
+  state.autoEnMs = clamp(Number(state.autoEnMs) || 1500, 200, 10000);
+  state.autoJaMs = clamp(Number(state.autoJaMs) || 1000, 200, 20000);
+
+  document.body.classList.toggle("dark", state.dark);
+
+  /* order */
+  if(!Array.isArray(state.shuffled) || state.shuffled.length === 0){
+    buildOrder();
+  }else{
+    const base = new Set(inRangeIndices());
+    const ok = state.shuffled.every(i => base.has(i));
+    if(!ok) buildOrder();
+    state.idx = clamp(state.idx, 0, Math.max(0, state.shuffled.length - 1));
+  }
+
+  /* safety: reloadでAuto勝手に開始しない */
+  state.autoOn = false;
+  if(autoTimer) clearTimeout(autoTimer);
+  autoTimer = 0;
+  setWakeUI(false, "WakeLock: OFF");
+
+  syncRangeConstraints();
+  render();
+
+  // ★ iOS/iPadOS対策：voicesを取得しに行く（空配列対策）
+  if ("speechSynthesis" in window) {
+    cachedEnglishVoice = pickEnglishVoice();
+    try { speechSynthesis.getVoices(); } catch(e) {}
+  }
+})();
+</script>
+</body>
+</html>
